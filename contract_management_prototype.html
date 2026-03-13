@@ -1,0 +1,2433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contract Management — Rate Contract Module</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #4F46E5;
+  --primary-light: #EEF2FF;
+  --primary-dark: #3730A3;
+  --success: #059669;
+  --success-light: #D1FAE5;
+  --warning: #D97706;
+  --warning-light: #FEF3C7;
+  --danger: #DC2626;
+  --danger-light: #FEE2E2;
+  --info: #2563EB;
+  --info-light: #DBEAFE;
+  --purple: #7C3AED;
+  --purple-light: #EDE9FE;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  min-height: 100vh;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+  position: fixed; left:0; top:0; bottom:0;
+  width: 260px; background: var(--gray-900);
+  padding: 24px 0; z-index: 100;
+  display: flex; flex-direction: column;
+  transition: width .2s;
+}
+.sidebar-brand {
+  padding: 0 24px 24px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  margin-bottom: 8px;
+}
+.sidebar-brand h2 {
+  color: #fff; font-size: 18px; font-weight: 700;
+  letter-spacing: -.3px;
+}
+.sidebar-brand span { color: var(--primary); }
+.sidebar-nav { flex:1; padding: 8px 12px; overflow-y: auto; }
+.sidebar-nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px; border-radius: var(--radius);
+  color: var(--gray-400); text-decoration: none;
+  font-size: 14px; font-weight: 500;
+  transition: all .15s;
+  margin-bottom: 2px;
+}
+.sidebar-nav a:hover { color: #fff; background: rgba(255,255,255,.06); }
+.sidebar-nav a.active { color: #fff; background: var(--primary); }
+.sidebar-nav a svg { width:20px; height:20px; flex-shrink:0; }
+.sidebar-section {
+  padding: 16px 12px 6px;
+  font-size: 11px; font-weight: 600;
+  color: var(--gray-500); text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.sidebar-user {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  display: flex; align-items: center; gap: 12px;
+}
+.sidebar-user .avatar {
+  width:36px; height:36px; border-radius:50%;
+  background: var(--primary); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:600; font-size:14px;
+}
+.sidebar-user .user-info { color: var(--gray-300); font-size:13px; }
+.sidebar-user .user-info strong { display:block; color:#fff; font-size:14px; }
+
+/* --- MAIN --- */
+.main { margin-left: 260px; min-height: 100vh; }
+
+/* --- TOP BAR --- */
+.topbar {
+  background: #fff; border-bottom: 1px solid var(--gray-200);
+  padding: 0 32px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top:0; z-index:50;
+}
+.topbar-left { display:flex; align-items:center; gap:16px; }
+.topbar-left h1 { font-size:20px; font-weight:700; color:var(--gray-900); }
+.breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--gray-400); }
+.breadcrumb a { color:var(--gray-500); text-decoration:none; }
+.breadcrumb a:hover { color:var(--primary); }
+.topbar-right { display:flex; align-items:center; gap:12px; }
+.topbar-search {
+  position:relative;
+}
+.topbar-search input {
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 13px; width: 240px;
+  background: var(--gray-50);
+  transition: all .15s;
+}
+.topbar-search input:focus { outline:none; border-color:var(--primary); background:#fff; width:300px; }
+.topbar-search svg {
+  position:absolute; left:10px; top:50%; transform:translateY(-50%);
+  width:16px; height:16px; color:var(--gray-400);
+}
+.icon-btn {
+  width:36px; height:36px; border-radius:var(--radius);
+  border:1px solid var(--gray-200); background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; color:var(--gray-500);
+  transition: all .15s; position:relative;
+}
+.icon-btn:hover { background:var(--gray-50); color:var(--gray-700); }
+.icon-btn .badge-dot {
+  position:absolute; top:6px; right:6px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--danger); border:2px solid #fff;
+}
+
+/* --- CONTENT --- */
+.content { padding: 24px 32px 48px; }
+
+/* --- CARDS --- */
+.card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+}
+.card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--gray-100);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-header h3 { font-size:16px; font-weight:600; }
+.card-body { padding: 24px; }
+
+/* --- BUTTONS --- */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: var(--radius);
+  font-size: 14px; font-weight: 500;
+  border: none; cursor: pointer;
+  transition: all .15s;
+  text-decoration: none;
+}
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-secondary { background:var(--gray-100); color:var(--gray-700); border:1px solid var(--gray-200); }
+.btn-secondary:hover { background:var(--gray-200); }
+.btn-success { background:var(--success); color:#fff; }
+.btn-success:hover { background:#047857; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-danger:hover { background:#B91C1C; }
+.btn-warning { background:var(--warning); color:#fff; }
+.btn-warning:hover { background:#B45309; }
+.btn-ghost { background:transparent; color:var(--gray-600); }
+.btn-ghost:hover { background:var(--gray-100); }
+.btn-sm { padding:6px 12px; font-size:13px; }
+.btn-lg { padding:12px 24px; font-size:15px; }
+.btn svg { width:16px; height:16px; }
+
+/* --- BADGES --- */
+.badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 12px; font-weight: 600;
+  white-space: nowrap;
+}
+.badge-draft { background:var(--gray-100); color:var(--gray-600); }
+.badge-pending { background:var(--warning-light); color:var(--warning); }
+.badge-approved { background:var(--info-light); color:var(--info); }
+.badge-active { background:var(--success-light); color:var(--success); }
+.badge-expiring { background:#FFF7ED; color:#EA580C; animation: pulse-badge 2s infinite; }
+.badge-expired { background:var(--danger-light); color:var(--danger); }
+.badge-terminated { background:var(--gray-200); color:var(--gray-600); }
+.badge-amendment { background:var(--purple-light); color:var(--purple); }
+
+@keyframes pulse-badge {
+  0%,100% { opacity:1; }
+  50% { opacity:.7; }
+}
+
+/* --- STAT CARDS --- */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px; margin-bottom: 24px;
+}
+.stat-card {
+  background: #fff; border-radius: var(--radius-lg);
+  border: 1px solid var(--gray-200);
+  padding: 20px 24px;
+  display: flex; align-items: flex-start; gap: 16px;
+}
+.stat-icon {
+  width:44px; height:44px; border-radius:var(--radius);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.stat-icon svg { width:22px; height:22px; }
+.stat-icon.blue { background:var(--info-light); color:var(--info); }
+.stat-icon.green { background:var(--success-light); color:var(--success); }
+.stat-icon.orange { background:var(--warning-light); color:var(--warning); }
+.stat-icon.red { background:var(--danger-light); color:var(--danger); }
+.stat-icon.purple { background:var(--purple-light); color:var(--purple); }
+.stat-content h4 { font-size:13px; font-weight:500; color:var(--gray-500); margin-bottom:4px; }
+.stat-content .stat-value { font-size:28px; font-weight:700; color:var(--gray-900); line-height:1.1; }
+.stat-content .stat-sub { font-size:12px; color:var(--gray-400); margin-top:4px; }
+
+/* --- TABLE --- */
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th {
+  text-align:left; padding:12px 16px;
+  font-size:12px; font-weight:600; color:var(--gray-500);
+  text-transform:uppercase; letter-spacing:.5px;
+  background:var(--gray-50); border-bottom:1px solid var(--gray-200);
+  white-space:nowrap;
+}
+td {
+  padding:14px 16px; border-bottom:1px solid var(--gray-100);
+  font-size:14px; color:var(--gray-700);
+}
+tr:hover td { background:var(--gray-50); }
+tr.clickable { cursor:pointer; }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+.text-muted { color:var(--gray-400); }
+.text-sm { font-size:13px; }
+.text-xs { font-size:12px; }
+.font-mono { font-family:'SF Mono','Fira Code',monospace; font-size:13px; }
+
+/* --- FORMS --- */
+.form-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+  gap:20px;
+}
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group label {
+  font-size:13px; font-weight:600; color:var(--gray-600);
+}
+.form-group label .required { color:var(--danger); }
+.form-control {
+  padding:9px 12px; border:1px solid var(--gray-300);
+  border-radius:var(--radius); font-size:14px;
+  transition:all .15s; font-family:inherit;
+  background:#fff;
+}
+.form-control:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+.form-control:disabled, .form-control[readonly] {
+  background:var(--gray-50); color:var(--gray-500); cursor:not-allowed;
+}
+.form-hint { font-size:12px; color:var(--gray-400); }
+select.form-control { appearance:auto; }
+textarea.form-control { min-height:80px; resize:vertical; }
+.form-row { display:flex; gap:16px; }
+.form-row .form-group { flex:1; }
+.toggle-wrap {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 0;
+}
+.toggle {
+  width:44px; height:24px; border-radius:12px;
+  background:var(--gray-300); cursor:pointer;
+  position:relative; transition:background .2s;
+}
+.toggle.active { background:var(--primary); }
+.toggle::after {
+  content:''; position:absolute;
+  width:18px; height:18px; border-radius:50%;
+  background:#fff; top:3px; left:3px;
+  transition:transform .2s; box-shadow:var(--shadow-sm);
+}
+.toggle.active::after { transform:translateX(20px); }
+
+/* --- ALERT / BANNER --- */
+.alert {
+  padding:14px 20px; border-radius:var(--radius);
+  display:flex; align-items:flex-start; gap:12px;
+  margin-bottom:20px; font-size:14px;
+}
+.alert svg { width:20px; height:20px; flex-shrink:0; margin-top:1px; }
+.alert-info { background:var(--info-light); color:#1D4ED8; border:1px solid #93C5FD; }
+.alert-warning { background:var(--warning-light); color:#92400E; border:1px solid #FCD34D; }
+.alert-danger { background:var(--danger-light); color:#991B1B; border:1px solid #FCA5A5; }
+.alert-success { background:var(--success-light); color:#065F46; border:1px solid #6EE7B7; }
+
+/* --- TABS --- */
+.tabs {
+  display:flex; gap:0; border-bottom:2px solid var(--gray-200);
+  margin-bottom:24px;
+}
+.tab {
+  padding:12px 20px; font-size:14px; font-weight:500;
+  color:var(--gray-500); cursor:pointer;
+  border-bottom:2px solid transparent;
+  margin-bottom:-2px; transition:all .15s;
+  background:none; border-top:none; border-left:none; border-right:none;
+}
+.tab:hover { color:var(--gray-700); }
+.tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+/* --- FILTER BAR --- */
+.filter-bar {
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:20px; flex-wrap:wrap;
+}
+.filter-bar .filter-chip {
+  padding:6px 14px; border-radius:20px;
+  font-size:13px; font-weight:500;
+  border:1px solid var(--gray-200);
+  background:#fff; color:var(--gray-600);
+  cursor:pointer; transition:all .15s;
+}
+.filter-bar .filter-chip:hover { border-color:var(--primary); color:var(--primary); }
+.filter-bar .filter-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+.filter-bar .filter-count {
+  font-size:12px; padding:2px 6px;
+  background:rgba(255,255,255,.3); border-radius:10px;
+  margin-left:4px;
+}
+
+/* --- LIFECYCLE --- */
+.lifecycle {
+  display:flex; align-items:center; gap:0;
+  margin:20px 0; padding:0 20px;
+}
+.lifecycle-step {
+  display:flex; flex-direction:column; align-items:center;
+  position:relative; flex:1;
+}
+.lifecycle-step .lc-dot {
+  width:36px; height:36px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; font-weight:700;
+  border:3px solid var(--gray-300); background:#fff;
+  color:var(--gray-400); z-index:2; transition:all .3s;
+}
+.lifecycle-step.done .lc-dot { border-color:var(--success); background:var(--success); color:#fff; }
+.lifecycle-step.current .lc-dot { border-color:var(--primary); background:var(--primary-light); color:var(--primary); animation:pulse-lc 2s infinite; }
+.lifecycle-step.warn .lc-dot { border-color:var(--warning); background:var(--warning-light); color:var(--warning); }
+.lifecycle-step .lc-label { margin-top:8px; font-size:11px; font-weight:600; color:var(--gray-500); text-transform:uppercase; letter-spacing:.3px; }
+.lifecycle-step.done .lc-label { color:var(--success); }
+.lifecycle-step.current .lc-label { color:var(--primary); }
+.lifecycle-step::after {
+  content:''; position:absolute; top:18px;
+  left:50%; width:100%; height:3px;
+  background:var(--gray-200); z-index:1;
+}
+.lifecycle-step:last-child::after { display:none; }
+.lifecycle-step.done::after { background:var(--success); }
+
+@keyframes pulse-lc {
+  0%,100% { box-shadow:0 0 0 0 rgba(79,70,229,.3); }
+  50% { box-shadow:0 0 0 8px rgba(79,70,229,0); }
+}
+
+/* --- APPROVAL TIER BANNER --- */
+.tier-banner {
+  padding:16px 20px; border-radius:var(--radius);
+  display:flex; align-items:center; gap:16px;
+  margin:16px 0;
+}
+.tier-banner.t1 { background:#F0FDF4; border:1px solid #86EFAC; }
+.tier-banner.t2 { background:#FFF7ED; border:1px solid #FDBA74; }
+.tier-banner.t3 { background:#FEF2F2; border:1px solid #FCA5A5; }
+.tier-banner .tier-label {
+  font-weight:700; font-size:14px; padding:4px 12px;
+  border-radius:var(--radius); color:#fff;
+}
+.tier-banner.t1 .tier-label { background:var(--success); }
+.tier-banner.t2 .tier-label { background:var(--warning); }
+.tier-banner.t3 .tier-label { background:var(--danger); }
+.tier-banner .tier-text { font-size:14px; line-height:1.4; }
+
+/* --- SKU LINE TABLE --- */
+.sku-table { width:100%; }
+.sku-table th { font-size:11px; padding:10px 12px; }
+.sku-table td { padding:10px 12px; font-size:13px; }
+.sku-table .form-control { padding:6px 8px; font-size:13px; }
+.sku-inline { display:flex; align-items:center; gap:8px; }
+.sku-inline img { width:32px; height:32px; border-radius:6px; background:var(--gray-100); }
+.sku-inline .sku-name { font-weight:500; }
+.sku-inline .sku-ean { font-size:11px; color:var(--gray-400); font-family:monospace; }
+
+/* --- DETAIL GRID --- */
+.detail-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(240px,1fr));
+  gap:16px;
+}
+.detail-item { padding:12px 0; }
+.detail-item .detail-label { font-size:12px; font-weight:600; color:var(--gray-400); text-transform:uppercase; letter-spacing:.3px; margin-bottom:4px; }
+.detail-item .detail-value { font-size:15px; font-weight:500; color:var(--gray-800); }
+
+/* --- MODAL --- */
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:none; align-items:center; justify-content:center;
+  z-index:200; backdrop-filter:blur(2px);
+}
+.modal-overlay.show { display:flex; }
+.modal {
+  background:#fff; border-radius:var(--radius-lg);
+  width:90%; max-width:640px; max-height:85vh;
+  overflow:hidden; box-shadow:var(--shadow-lg);
+  display:flex; flex-direction:column;
+}
+.modal-header {
+  padding:20px 24px; border-bottom:1px solid var(--gray-200);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.modal-header h3 { font-size:18px; font-weight:700; }
+.modal-body { padding:24px; overflow-y:auto; flex:1; }
+.modal-footer {
+  padding:16px 24px; border-top:1px solid var(--gray-200);
+  display:flex; justify-content:flex-end; gap:10px;
+}
+
+.bulk-upload-zone {
+  border:2px dashed var(--gray-300);
+  border-radius:var(--radius-lg);
+  padding:32px 24px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .2s;
+  background:var(--gray-50);
+}
+.bulk-upload-zone:hover,
+.bulk-upload-zone.dragover {
+  border-color:var(--primary);
+  background:var(--primary-light);
+}
+
+/* --- EMPTY STATE --- */
+.empty-state {
+  text-align:center; padding:60px 20px;
+}
+.empty-state svg { width:64px; height:64px; color:var(--gray-300); margin-bottom:16px; }
+.empty-state h3 { font-size:18px; color:var(--gray-600); margin-bottom:8px; }
+.empty-state p { font-size:14px; color:var(--gray-400); margin-bottom:24px; }
+
+/* --- PAGINATION --- */
+.pagination {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 0;
+}
+.pagination .page-info { font-size:13px; color:var(--gray-500); }
+.pagination .page-btns { display:flex; gap:4px; }
+.pagination .page-btn {
+  width:36px; height:36px; border-radius:var(--radius);
+  border:1px solid var(--gray-200); background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:13px; font-weight:500;
+  color:var(--gray-600); transition:all .15s;
+}
+.pagination .page-btn:hover { background:var(--gray-50); }
+.pagination .page-btn.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+/* --- TIMELINE / AUDIT --- */
+.timeline { position:relative; padding-left:28px; }
+.timeline::before {
+  content:''; position:absolute; left:8px; top:4px; bottom:4px;
+  width:2px; background:var(--gray-200);
+}
+.timeline-item { position:relative; padding-bottom:20px; }
+.timeline-item::before {
+  content:''; position:absolute; left:-24px; top:4px;
+  width:12px; height:12px; border-radius:50%;
+  background:var(--primary); border:2px solid #fff;
+  box-shadow:0 0 0 2px var(--primary-light);
+}
+.timeline-item.auto::before { background:var(--success); box-shadow:0 0 0 2px var(--success-light); }
+.timeline-item.pending::before { background:var(--warning); box-shadow:0 0 0 2px var(--warning-light); }
+.timeline-item .tl-time { font-size:12px; color:var(--gray-400); margin-bottom:2px; }
+.timeline-item .tl-body { font-size:14px; color:var(--gray-700); }
+.timeline-item .tl-body strong { color:var(--gray-900); }
+
+/* --- MISC --- */
+.flex { display:flex; }
+.flex-between { display:flex; align-items:center; justify-content:space-between; }
+.gap-8 { gap:8px; }
+.gap-12 { gap:12px; }
+.gap-16 { gap:16px; }
+.mb-4 { margin-bottom:4px; }
+.mb-8 { margin-bottom:8px; }
+.mb-16 { margin-bottom:16px; }
+.mb-24 { margin-bottom:24px; }
+.mt-8 { margin-top:8px; }
+.mt-16 { margin-top:16px; }
+.mt-24 { margin-top:24px; }
+.w-full { width:100%; }
+
+/* --- SCREEN MANAGEMENT --- */
+.screen { display:none; }
+.screen.active { display:block; }
+
+/* --- EXPIRY BANNER --- */
+.expiry-banner {
+  background:linear-gradient(135deg, #FFF7ED, #FEF3C7);
+  border:1px solid #FDBA74;
+  border-radius:var(--radius);
+  padding:14px 20px;
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:20px;
+  font-size:14px; color:#92400E;
+}
+.expiry-banner svg { width:20px; height:20px; flex-shrink:0; color:#EA580C; }
+.expiry-banner strong { color:#9A3412; }
+
+/* --- SECTION DIVIDER --- */
+.section-title {
+  font-size:15px; font-weight:700; color:var(--gray-800);
+  padding-bottom:12px; margin-bottom:20px;
+  border-bottom:2px solid var(--gray-200);
+  display:flex; align-items:center; gap:8px;
+}
+.section-title svg { width:18px; height:18px; color:var(--primary); }
+
+/* --- COMPUTED FIELD HIGHLIGHT --- */
+.computed-field {
+  background:var(--gray-50); border:1px dashed var(--gray-300);
+  border-radius:var(--radius); padding:8px 12px;
+  font-size:14px; font-weight:600; color:var(--gray-700);
+}
+.computed-field .label { font-size:11px; font-weight:500; color:var(--gray-400); text-transform:uppercase; }
+
+/* --- RATE REVISION CARD --- */
+.revision-card {
+  border:1px solid var(--gray-200);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:12px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.revision-card .rev-sku { font-weight:600; font-size:14px; }
+.revision-card .rev-delta { font-size:13px; }
+.revision-card .rev-delta.up { color:var(--danger); }
+.revision-card .rev-delta.down { color:var(--success); }
+
+/* scrollbar */
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--gray-300); border-radius:3px; }
+::-webkit-scrollbar-thumb:hover { background:var(--gray-400); }
+</style>
+</head>
+<body>
+
+<!-- ==================== SIDEBAR ==================== -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <h2><span>FC</span> Supply</h2>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">Procurement</div>
+    <a href="#" onclick="showScreen('dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="#" class="active" onclick="showScreen('list')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+      Contracts
+    </a>
+    <a href="#" onclick="showScreen('approvals')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Approvals
+      <span style="margin-left:auto;background:var(--danger);color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:600;">5</span>
+    </a>
+    <a href="po_guardrails_prototype.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      PO Guardrails
+    </a>
+    <div class="sidebar-section">Masters</div>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Vendors
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      Products / SKUs
+    </a>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      Hubs & Depots
+    </a>
+    <div class="sidebar-section">Settings</div>
+    <a href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Configuration
+    </a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar">PG</div>
+    <div class="user-info">
+      <strong>Paridhi Gupta</strong>
+      Category Manager
+    </div>
+  </div>
+</aside>
+
+<!-- ==================== MAIN ==================== -->
+<div class="main">
+
+  <!-- ==================== TOP BAR ==================== -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb" id="breadcrumb">
+        <a href="#" onclick="showScreen('list')">Contracts</a>
+        <span>/</span>
+        <span id="breadcrumb-current">All Contracts</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search contracts, vendors, SKUs..." />
+      </div>
+      <button class="icon-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="badge-dot"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- =====================================================
+         SCREEN 1: CONTRACT LIST
+         ===================================================== -->
+    <div class="screen active" id="screen-list">
+      <div class="flex-between mb-24">
+        <div>
+          <h1 style="font-size:24px;font-weight:700;color:var(--gray-900);">Rate Contracts</h1>
+          <p class="text-sm text-muted mt-8">Manage all vendor rate contracts across supply lanes</p>
+        </div>
+        <div class="flex gap-12" style="align-items:center;">
+          <button class="btn btn-secondary" onclick="downloadContractTemplate()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Template
+          </button>
+          <button class="btn btn-secondary" onclick="openModal('bulkUploadModal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Bulk Upload
+          </button>
+          <button class="btn btn-primary btn-lg" onclick="showScreen('create')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            New Rate Contract
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          </div>
+          <div class="stat-content">
+            <h4>Total Contracts</h4>
+            <div class="stat-value">156</div>
+            <div class="stat-sub">+12 this month</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+          </div>
+          <div class="stat-content">
+            <h4>Active</h4>
+            <div class="stat-value">98</div>
+            <div class="stat-sub">62.8% of total</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+          </div>
+          <div class="stat-content">
+            <h4>Expiring Soon</h4>
+            <div class="stat-value">7</div>
+            <div class="stat-sub">Within 30 days</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </div>
+          <div class="stat-content">
+            <h4>Under Amendment</h4>
+            <div class="stat-value">4</div>
+            <div class="stat-sub">Pending rate revisions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div class="stat-content">
+            <h4>Expired</h4>
+            <div class="stat-value">22</div>
+            <div class="stat-sub">Renewal required</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar" id="contractFilterBar">
+        <span class="text-sm" style="font-weight:600;color:var(--gray-600);">Status:</span>
+        <span class="filter-chip active" data-filter="all">All <span class="filter-count">156</span></span>
+        <span class="filter-chip" data-filter="active">Active <span class="filter-count" style="background:rgba(0,0,0,.06)">98</span></span>
+        <span class="filter-chip" data-filter="draft">Draft <span class="filter-count" style="background:rgba(0,0,0,.06)">18</span></span>
+        <span class="filter-chip" data-filter="expiring">Expiring Soon <span class="filter-count" style="background:rgba(0,0,0,.06)">7</span></span>
+        <span class="filter-chip" data-filter="expired">Expired <span class="filter-count" style="background:rgba(0,0,0,.06)">22</span></span>
+        <span class="filter-chip" data-filter="amendment">Amendment <span class="filter-count" style="background:rgba(0,0,0,.06)">4</span></span>
+        <div style="margin-left:auto;">
+          <button class="btn btn-secondary btn-sm">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"/></svg>
+            More Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Contract List Table -->
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Contract #</th>
+                <th>Vendor / Lane</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Validity</th>
+                <th class="text-right">Est. Value</th>
+                <th>SKUs</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="contractListBody">
+              <tr class="clickable" onclick="showScreen('detail')">
+                <td><span class="font-mono" style="color:var(--primary);font-weight:600;">ENT1-RC-2526-0042</span></td>
+                <td>
+                  <div style="font-weight:600;">Popular Essentials Pvt Ltd</div>
+                  <div class="text-xs text-muted">BLR-DEPOT-01 → FRHBLRKKH01 (KK Halli Hub)</div>
+                </td>
+                <td><span class="badge badge-draft" style="background:#E0E7FF;color:#4338CA;">FMCG</span></td>
+                <td><span class="badge badge-active">● Active</span></td>
+                <td>
+                  <div class="text-sm">1 Year</div>
+                  <div class="text-xs text-muted">01 Apr 2025 – 31 Mar 2026</div>
+                </td>
+                <td class="text-right font-mono">₹42.35L</td>
+                <td class="text-center">14</td>
+                <td><button class="btn btn-ghost btn-sm">→</button></td>
+              </tr>
+              <tr class="clickable" onclick="showScreen('detail')">
+                <td><span class="font-mono" style="color:var(--primary);font-weight:600;">ENT1-RC-2526-0038</span></td>
+                <td>
+                  <div style="font-weight:600;">Born Good Consumer Products</div>
+                  <div class="text-xs text-muted">BLR-DEPOT-02 → FRHBLRKKH01</div>
+                </td>
+                <td><span class="badge badge-draft" style="background:#E0E7FF;color:#4338CA;">FMCG</span></td>
+                <td><span class="badge badge-expiring">⏰ Expiring Soon</span></td>
+                <td>
+                  <div class="text-sm">6 Months</div>
+                  <div class="text-xs text-muted">01 Oct 2025 – 31 Mar 2026 · <strong style="color:#EA580C;">18 days left</strong></div>
+                </td>
+                <td class="text-right font-mono">₹28,90,000</td>
+                <td class="text-center">9</td>
+                <td><button class="btn btn-ghost btn-sm">→</button></td>
+              </tr>
+              <tr class="clickable">
+                <td><span class="font-mono" style="color:var(--primary);font-weight:600;">ENT2-RC-2526-0051</span></td>
+                <td>
+                  <div style="font-weight:600;">Masterchow Foods Pvt Ltd</div>
+                  <div class="text-xs text-muted">BLR-DEPOT-03 → FRHBLRHSK02</div>
+                </td>
+                <td><span class="badge badge-draft" style="background:#E0E7FF;color:#4338CA;">FMCG</span></td>
+                <td><span class="badge badge-amendment">◆ Under Amendment</span></td>
+                <td>
+                  <div class="text-sm">1 Year</div>
+                  <div class="text-xs text-muted">15 Jan 2026 – 14 Jan 2027</div>
+                </td>
+                <td class="text-right font-mono">₹1.13 Cr</td>
+                <td class="text-center">22</td>
+                <td><button class="btn btn-ghost btn-sm">→</button></td>
+              </tr>
+              <tr class="clickable">
+                <td><span class="font-mono" style="color:var(--primary);font-weight:600;">ENT1-RC-2526-0055</span></td>
+                <td>
+                  <div style="font-weight:600;">Dhampur Green Organics</div>
+                  <div class="text-xs text-muted">BLR-DEPOT-04 → FRHBLRKKH01</div>
+                </td>
+                <td><span class="badge" style="background:#FEF3C7;color:#92400E;">Packaging</span></td>
+                <td><span class="badge badge-active">● Active</span></td>
+                <td>
+                  <div class="text-sm">3 Months</div>
+                  <div class="text-xs text-muted">01 Mar 2026 – 31 May 2026</div>
+                </td>
+                <td class="text-right font-mono">₹3.75L</td>
+                <td class="text-center">5</td>
+                <td><button class="btn btn-ghost btn-sm">→</button></td>
+              </tr>
+              <tr class="clickable">
+                <td><span class="font-mono" style="color:var(--primary);font-weight:600;">ENT1-RC-2526-0060</span></td>
+                <td>
+                  <div style="font-weight:600;">Farm Made (Eggs & Poultry)</div>
+                  <div class="text-xs text-muted">BLR-DEPOT-05 → FRHBLRKKH01</div>
+                </td>
+                <td><span class="badge" style="background:#EDE9FE;color:#7C3AED;">Private Label</span></td>
+                <td><span class="badge badge-draft">Draft</span></td>
+                <td>
+                  <div class="text-sm">1 Year</div>
+                  <div class="text-xs text-muted">01 Apr 2026 – 31 Mar 2027</div>
+                </td>
+                <td class="text-right font-mono">₹18.60L</td>
+                <td class="text-center">8</td>
+                <td><button class="btn btn-ghost btn-sm">→</button></td>
+              </tr>
+              <tr class="clickable">
+                <td><span class="font-mono" style="color:var(--primary);font-weight:600;">ENT1-RC-2425-0112</span></td>
+                <td>
+                  <div style="font-weight:600;">Akshayakalpa Organic</div>
+                  <div class="text-xs text-muted">BLR-DEPOT-06 → FRHBLRKKH01</div>
+                </td>
+                <td><span class="badge badge-draft" style="background:#E0E7FF;color:#4338CA;">FMCG</span></td>
+                <td><span class="badge badge-expired">✕ Expired</span></td>
+                <td>
+                  <div class="text-sm">1 Year</div>
+                  <div class="text-xs text-muted">01 Apr 2024 – 31 Mar 2025</div>
+                </td>
+                <td class="text-right font-mono">₹35.20L</td>
+                <td class="text-center">11</td>
+                <td><button class="btn btn-ghost btn-sm">→</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" style="padding:12px 16px;">
+          <div class="page-info">Showing 1–6 of 156 contracts</div>
+          <div class="page-btns">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">…</button>
+            <button class="page-btn">26</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         SCREEN 2: CONTRACT DETAIL
+         ===================================================== -->
+    <div class="screen" id="screen-detail">
+
+      <!-- Expiry Banner -->
+      <div class="expiry-banner" id="expiryBanner" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+        <div>
+          <strong>Expiring Soon</strong> — This contract expires on <strong>31 Mar 2026</strong> (18 days remaining).
+          Initiate a renewal or amendment to avoid disruption in PO generation.
+        </div>
+        <button class="btn btn-warning btn-sm" style="margin-left:auto;white-space:nowrap;" onclick="showScreen('create')">Renew / Amend</button>
+      </div>
+
+      <div class="flex-between mb-24">
+        <div>
+          <div class="flex gap-12" style="align-items:center;">
+            <h1 style="font-size:22px;font-weight:700;color:var(--gray-900);">ENT1-RC-2526-0042</h1>
+            <span class="badge badge-active" style="font-size:13px;">● Active</span>
+          </div>
+          <p class="text-sm text-muted mt-8">Hindustan Unilever Ltd — Delhi Depot → FRHBLRKKH01 (Bangalore Hub — KK Halli) · FMCG</p>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary" onclick="openModal('rateRevisionModal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Amend Rates
+          </button>
+          <button class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export PDF
+          </button>
+          <button class="btn btn-danger btn-sm" style="padding:9px 14px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Terminate
+          </button>
+        </div>
+      </div>
+
+      <!-- Lifecycle -->
+      <div class="card mb-24">
+        <div class="card-header"><h3>Contract Lifecycle</h3></div>
+        <div class="card-body">
+          <div class="lifecycle">
+            <div class="lifecycle-step done">
+              <div class="lc-dot">✓</div>
+              <div class="lc-label">Draft</div>
+            </div>
+            <div class="lifecycle-step current">
+              <div class="lc-dot">●</div>
+              <div class="lc-label">Active</div>
+            </div>
+            <div class="lifecycle-step">
+              <div class="lc-dot">3</div>
+              <div class="lc-label">Expiring Soon</div>
+            </div>
+            <div class="lifecycle-step">
+              <div class="lc-dot">4</div>
+              <div class="lc-label">Expired</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" onclick="switchDetailTab(this,'detail-overview')">Overview</button>
+        <button class="tab" onclick="switchDetailTab(this,'detail-skulines')">SKU Lines (14)</button>
+        <button class="tab" onclick="switchDetailTab(this,'detail-performance')">Vendor Performance</button>
+        <button class="tab" onclick="switchDetailTab(this,'detail-audit')">Rate Revision History</button>
+      </div>
+
+      <!-- Overview Tab -->
+      <div class="detail-tab active" id="detail-overview">
+        <div class="card mb-24">
+          <div class="card-header"><h3>Contract Header</h3></div>
+          <div class="card-body">
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="detail-label">Entity (Buyer)</div>
+                <div class="detail-value">FC Entity 1 (ENT1)</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Vendor / Supplier</div>
+                <div class="detail-value">Hindustan Unilever Ltd</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Supply Location</div>
+                <div class="detail-value">Delhi Depot (Delhi)</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Destination Hub</div>
+                <div class="detail-value">FRHBLRKKH01 — Bangalore Hub KK Halli (Karnataka)</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">GST Type</div>
+                <div class="detail-value"><span class="badge badge-active">IGST — Interstate</span><div class="text-xs text-muted mt-8">Delhi ≠ Karnataka</div></div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Contract Number</div>
+                <div class="detail-value font-mono">ENT1-RC-2526-0042</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Contract Title</div>
+                <div class="detail-value">HUL — Delhi Depot → FRHBLRKKH01 · FMCG</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Primary Category</div>
+                <div class="detail-value"><span class="badge" style="background:#E0E7FF;color:#4338CA;">FMCG</span></div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Validity</div>
+                <div class="detail-value">1 Year</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Start Date</div>
+                <div class="detail-value">01 Apr 2025</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">End Date</div>
+                <div class="detail-value">31 Mar 2026</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Estimated Value (Tax-incl.)</div>
+                <div class="detail-value" style="color:var(--primary);font-weight:700;font-size:18px;">₹42,35,000</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Payment Terms</div>
+                <div class="detail-value">30 days</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Currency</div>
+                <div class="detail-value">INR (₹)</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Vendor Acknowledgement</div>
+                <div class="detail-value"><span class="badge badge-active">Required</span> · 7-day deadline</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SKU Lines Tab -->
+      <div class="detail-tab" id="detail-skulines" style="display:none;">
+        <div class="alert alert-info mb-16">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div>VSM mappings are auto-resolved. Lines flagged <strong>PENDING_OPERATIONAL_SETUP</strong> block PO generation until the VSM mapping is activated.</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3>SKU Lines — FMCG Profile (RC-A)</h3>
+            <button class="btn btn-primary btn-sm" onclick="openModal('addSkuModal')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add SKU Line
+            </button>
+          </div>
+          <div class="table-wrap">
+            <table class="sku-table">
+              <thead>
+                <tr>
+                  <th>SKU / EAN</th>
+                  <th>HSN</th>
+                  <th>UOM</th>
+                  <th>Pricing</th>
+                  <th class="text-right">Rate (₹/UOM)</th>
+                  <th class="text-right">GST %</th>
+                  <th class="text-right">GST Amt</th>
+                  <th class="text-right">Landed Cost</th>
+                  <th class="text-right">Committed Qty</th>
+                  <th>VSM</th>
+                  <th>MOQ</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="detailSkuLinesBody">
+                <tr>
+                  <td>
+                    <div class="sku-inline">
+                      <div style="width:32px;height:32px;border-radius:6px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:14px;">🧴</div>
+                      <div>
+                        <div class="sku-name">Dove Body Wash 250ml</div>
+                        <div class="sku-ean">8901030769887</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="font-mono text-sm">33051010</td>
+                  <td>EA</td>
+                  <td><span class="badge badge-draft" style="font-size:11px;">FIXED</span></td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹185.00</td>
+                  <td class="text-right">18%</td>
+                  <td class="text-right font-mono">₹33.30</td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹218.30</td>
+                  <td class="text-right font-mono">5,000</td>
+                  <td><span class="badge badge-active" style="font-size:11px;">Active</span></td>
+                  <td class="font-mono text-sm">100</td>
+                  <td><button class="btn btn-ghost btn-sm">✎</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="sku-inline">
+                      <div style="width:32px;height:32px;border-radius:6px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:14px;">🧊</div>
+                      <div>
+                        <div class="sku-name">Surf Excel Matic 1kg</div>
+                        <div class="sku-ean">8901030722226</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="font-mono text-sm">34022090</td>
+                  <td>EA</td>
+                  <td><span class="badge badge-draft" style="font-size:11px;">FIXED</span></td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹245.00</td>
+                  <td class="text-right">18%</td>
+                  <td class="text-right font-mono">₹44.10</td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹289.10</td>
+                  <td class="text-right font-mono">3,000</td>
+                  <td><span class="badge badge-active" style="font-size:11px;">Active</span></td>
+                  <td class="font-mono text-sm">50</td>
+                  <td><button class="btn btn-ghost btn-sm">✎</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="sku-inline">
+                      <div style="width:32px;height:32px;border-radius:6px;background:#D1FAE5;display:flex;align-items:center;justify-content:center;font-size:14px;">🍵</div>
+                      <div>
+                        <div class="sku-name">Brooke Bond Red Label 500g</div>
+                        <div class="sku-ean">8901030511448</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="font-mono text-sm">09021010</td>
+                  <td>EA</td>
+                  <td><span class="badge" style="font-size:11px;background:#EDE9FE;color:#7C3AED;">PRICE_BAND</span></td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹125–₹140</td>
+                  <td class="text-right">5%</td>
+                  <td class="text-right font-mono">₹6.25–₹7.00</td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹131.25–₹147</td>
+                  <td class="text-right font-mono">8,000</td>
+                  <td><span class="badge badge-active" style="font-size:11px;">Active</span></td>
+                  <td class="font-mono text-sm">200</td>
+                  <td><button class="btn btn-ghost btn-sm">✎</button></td>
+                </tr>
+                <tr style="background:#FEF2F2;">
+                  <td>
+                    <div class="sku-inline">
+                      <div style="width:32px;height:32px;border-radius:6px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;font-size:14px;">🧹</div>
+                      <div>
+                        <div class="sku-name">Vim Dishwash Bar 500g</div>
+                        <div class="sku-ean">8901030599994</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="font-mono text-sm">34011190</td>
+                  <td>EA</td>
+                  <td><span class="badge badge-draft" style="font-size:11px;">FIXED</span></td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹52.00</td>
+                  <td class="text-right">18%</td>
+                  <td class="text-right font-mono">₹9.36</td>
+                  <td class="text-right font-mono" style="font-weight:600;">₹61.36</td>
+                  <td class="text-right font-mono">10,000</td>
+                  <td><span class="badge badge-pending" style="font-size:11px;">Pending Setup</span></td>
+                  <td class="font-mono text-sm">—</td>
+                  <td><button class="btn btn-ghost btn-sm">✎</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Tab -->
+      <div class="detail-tab" id="detail-performance" style="display:none;">
+        <div class="card">
+          <div class="card-header"><h3>Vendor Performance Terms</h3></div>
+          <div class="card-body">
+            <div class="detail-grid">
+              <div class="detail-item">
+                <div class="detail-label">Min Fill Rate</div>
+                <div class="detail-value">95%</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Fill Rate Measurement</div>
+                <div class="detail-value">Rolling 30 Days</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Fill Rate Breach Penalty</div>
+                <div class="detail-value">WARN_ONLY</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Short Supply Tolerance</div>
+                <div class="detail-value">3%</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Delivery Lead Time SLA</div>
+                <div class="detail-value">24 hours</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Lead Time Breach Penalty</div>
+                <div class="detail-value">None</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">MOP Protection</div>
+                <div class="detail-value">Off</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Market Damages Return</div>
+                <div class="detail-value">Full Return</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Return Window</div>
+                <div class="detail-value">7 days</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Performance Review Frequency</div>
+                <div class="detail-value">Monthly</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit / Rate Revision Tab -->
+      <div class="detail-tab" id="detail-audit" style="display:none;">
+        <div class="card">
+          <div class="card-header"><h3>Rate Revision History (nlc_change_log)</h3></div>
+          <div class="card-body">
+            <div class="timeline">
+              <div class="timeline-item auto">
+                <div class="tl-time">12 Feb 2026, 10:45 AM</div>
+                <div class="tl-body">
+                  <strong>Dove Body Wash 250ml</strong> — Rate changed from <strong>₹180.00</strong> → <strong>₹185.00</strong> (+2.78%)
+                  <br><span class="badge badge-active" style="font-size:11px;margin-top:4px;">AUTO_APPROVED</span> · By Paridhi Gupta
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="tl-time">28 Jan 2026, 03:12 PM</div>
+                <div class="tl-body">
+                  <strong>Surf Excel Matic 1kg</strong> — Rate changed from <strong>₹230.00</strong> → <strong>₹245.00</strong> (+6.52%)
+                  <br><span class="badge badge-approved" style="font-size:11px;margin-top:4px;">FINANCE_APPROVED</span> · Approved by Ravi Menon (Finance)
+                </div>
+              </div>
+              <div class="timeline-item auto">
+                <div class="tl-time">15 Jan 2026, 11:30 AM</div>
+                <div class="tl-body">
+                  <strong>Brooke Bond Red Label 500g</strong> — Rate band changed from <strong>₹120–₹135</strong> → <strong>₹125–₹140</strong> (+4.17% midpoint)
+                  <br><span class="badge badge-active" style="font-size:11px;margin-top:4px;">AUTO_APPROVED</span> · By Paridhi Gupta
+                </div>
+              </div>
+              <div class="timeline-item pending">
+                <div class="tl-time">10 Mar 2026, 09:00 AM</div>
+                <div class="tl-body">
+                  <strong>Vim Dishwash Bar 500g</strong> — Rate change requested from <strong>₹48.00</strong> → <strong>₹52.00</strong> (+8.33%)
+                  <br><span class="badge badge-pending" style="font-size:11px;margin-top:4px;">PENDING_FINANCE_APPROVAL</span> · Submitted by Paridhi Gupta · Awaiting Finance review
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         SCREEN 3: CREATE / EDIT CONTRACT
+         ===================================================== -->
+    <div class="screen" id="screen-create">
+      <div class="flex-between mb-24">
+        <div>
+          <h1 style="font-size:22px;font-weight:700;color:var(--gray-900);">New Rate Contract</h1>
+          <p class="text-sm text-muted mt-8">Create a new rate contract for a vendor supply lane</p>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-secondary" onclick="showScreen('list')">Cancel</button>
+          <button class="btn btn-secondary">Save as Draft</button>
+          <button class="btn btn-primary" onclick="openModal('submitModal')">Create Contract</button>
+        </div>
+      </div>
+
+      <div class="alert alert-info mb-24">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div><strong>One Contract = One Lane.</strong> Lane is defined as: Vendor × Supply Location (vendor depot) × Destination Hub. The Contracted Rate is all-in per UOM — no separate freight.</div>
+      </div>
+
+      <!-- Contract Header -->
+      <div class="card mb-24">
+        <div class="card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="vertical-align:middle;margin-right:6px;color:var(--primary);"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            Contract Header
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Entity (Buyer) <span class="required">*</span></label>
+              <select class="form-control" id="entitySelect" onchange="updateContractNumber()">
+                <option value="">Select entity...</option>
+                <option value="ENT1" selected>FC Entity 1 (ENT1)</option>
+                <option value="ENT2">FC Entity 2 (ENT2)</option>
+              </select>
+              <div class="form-hint">Bill To address & GSTIN auto-populated. Immutable after creation.</div>
+            </div>
+            <div class="form-group">
+              <label>Vendor / Supplier <span class="required">*</span></label>
+              <select class="form-control" id="vendorSelect" onchange="onVendorChange();autoFillContractTitle();">
+                <option value="">Select approved vendor...</option>
+              </select>
+              <div class="form-hint">Only APPROVED vendors shown. Immutable after creation.</div>
+            </div>
+            <div class="form-group">
+              <label>Supply Location (Vendor Depot) <span class="required">*</span></label>
+              <select class="form-control" id="supplyLocationSelect" onchange="computeIGST();autoFillContractTitle();">
+                <option value="">Select vendor depot...</option>
+              </select>
+              <div class="form-hint">Vendor's dispatch point. Drives IGST derivation. Immutable.</div>
+            </div>
+            <div class="form-group">
+              <label>Destination Hub <span class="required">*</span></label>
+              <select class="form-control" id="destHubSelect" onchange="computeIGST();autoFillContractTitle();">
+                <option value="">Select hub...</option>
+              </select>
+              <div class="form-hint">Receiving hub. Immutable after creation.</div>
+            </div>
+            <div class="form-group">
+              <label>Is IGST</label>
+              <div class="computed-field">
+                <div class="label">Auto-computed</div>
+                <span id="igstDisplay">—Select supply location & destination hub—</span>
+              </div>
+              <div class="form-hint">Different states = IGST. Same state = CGST+SGST.</div>
+            </div>
+            <div class="form-group">
+              <label>Contract Number</label>
+              <div class="computed-field">
+                <div class="label">Auto-generated</div>
+                <span id="contractNumDisplay" class="font-mono">ENT1-RC-2526-0063</span>
+              </div>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label>Contract Title <span class="required">*</span></label>
+              <input type="text" class="form-control" maxlength="120" placeholder="e.g. Hindustan Unilever — Delhi Depot → Mumbai Hub FMCG" value="">
+              <div class="form-hint">Max 120 chars. Must describe the lane clearly. Generic titles are rejected.</div>
+            </div>
+            <div class="form-group">
+              <label>Primary Category <span class="required">*</span></label>
+              <select class="form-control" id="categorySelect" onchange="updateCategoryProfile();autoFillContractTitle();">
+                <option value="">Select category...</option>
+              </select>
+              <div class="form-hint">Determines SKU line field profile.</div>
+            </div>
+            <div class="form-group">
+              <label>Validity <span class="required">*</span></label>
+              <select class="form-control" id="validitySelect" onchange="toggleValidityMode(); computeEndDate();">
+                <option value="">Select validity...</option>
+                <option value="1d">1 Day</option>
+                <option value="7d">7 Days</option>
+                <option value="1m">1 Month</option>
+                <option value="3m">3 Months</option>
+                <option value="6m">6 Months</option>
+                <option value="1y">1 Year</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Start Date <span class="required">*</span></label>
+              <input type="date" class="form-control" id="startDate" onchange="computeEndDate(); updateCustomEndDateMin();" min="2026-03-13" value="2026-04-01">
+            </div>
+            <div class="form-group">
+              <label>End Date</label>
+              <div class="computed-field" id="endDateComputedWrap">
+                <div class="label">Auto-computed from Start + Validity</div>
+                <span id="endDateDisplay">—Select validity—</span>
+              </div>
+              <div id="endDateCustomWrap" style="display:none;">
+                <input type="date" class="form-control" id="endDateCustom" min="2026-03-13">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Payment Terms (days) <span class="required">*</span></label>
+              <input type="number" class="form-control" value="30" min="1">
+            </div>
+            <div class="form-group">
+              <label>Currency <span class="required">*</span></label>
+              <select class="form-control">
+                <option value="INR" selected>INR (₹)</option>
+                <option value="USD">USD ($)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Vendor Acknowledgement Required</label>
+              <div class="toggle-wrap">
+                <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                <span class="text-sm">Require vendor acknowledgement for rate revisions</span>
+              </div>
+              <div class="form-hint">Default 7-day deadline for vendor to acknowledge.</div>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label>Notes / Internal Remarks</label>
+              <textarea class="form-control" placeholder="Internal notes (will not appear on PO PDFs)..."></textarea>
+            </div>
+          </div>
+
+          <!-- Estimated Value -->
+          <div style="margin-top:24px;padding:20px;background:var(--gray-50);border-radius:var(--radius-lg);border:1px solid var(--gray-200);">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:var(--gray-500);text-transform:uppercase;margin-bottom:4px;">Estimated Contract Value (Tax-Inclusive)</div>
+              <div style="font-size:28px;font-weight:700;color:var(--gray-900);" id="estValueDisplay">₹0.00</div>
+              <div class="text-xs text-muted mt-8">Sum of (Rate × Committed Qty × (1 + GST)) across all SKU lines. Updates live.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lane Uniqueness Warning -->
+      <div class="alert alert-warning mb-24" id="laneWarning" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <strong>Duplicate Lane Warning:</strong> An active contract <span class="font-mono" style="font-weight:600;">ENT1-RC-2526-0042</span> already exists for this lane (HUL × Delhi Depot × Mumbai Hub).
+          You may still proceed — the existing contract will be shown for reference.
+        </div>
+      </div>
+
+      <!-- SKU Lines Section -->
+      <div class="card mb-24">
+        <div class="card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="vertical-align:middle;margin-right:6px;color:var(--primary);"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+            SKU Lines <span class="text-sm text-muted" style="font-weight:400;" id="categoryProfileLabel">— Select a category to configure</span>
+          </h3>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addSkuModal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add SKU Line
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="empty-state" id="skuLinesEmptyState">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27,6.96 12,12.01 20.73,6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <h3>No SKU lines added yet</h3>
+            <p>Add SKU lines to define products and their contracted rates for this lane.</p>
+            <button class="btn btn-primary" onclick="openModal('addSkuModal')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add First SKU
+            </button>
+          </div>
+          <div class="table-wrap" id="createSkuLinesTableWrap" style="display:none;">
+            <table class="sku-table">
+              <thead>
+                <tr>
+                  <th>SKU / EAN</th>
+                  <th>HSN</th>
+                  <th>UOM</th>
+                  <th>Pricing</th>
+                  <th class="text-right">Rate (₹/UOM)</th>
+                  <th class="text-right">Committed Qty</th>
+                  <th>MOQ</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="createSkuLinesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vendor Performance Terms -->
+      <div class="card mb-24">
+        <div class="card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18" style="vertical-align:middle;margin-right:6px;color:var(--primary);"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>
+            Vendor Performance Terms
+          </h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Min Fill Rate (%) <span class="required">*</span></label>
+              <input type="number" class="form-control" value="95" min="0" max="100">
+              <div class="form-hint">G12 warns if vendor trailing fill rate falls below this.</div>
+            </div>
+            <div class="form-group">
+              <label>Fill Rate Measurement Window</label>
+              <select class="form-control">
+                <option value="rolling30" selected>Rolling 30 Days</option>
+                <option value="per_delivery">Per Delivery</option>
+                <option value="monthly">Monthly Calendar</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fill Rate Breach Action <span class="required">*</span></label>
+              <select class="form-control">
+                <option value="warn" selected>WARN_ONLY</option>
+                <option value="ack">REQUIRE_ACKNOWLEDGEMENT</option>
+                <option value="debit">DEBIT_NOTE</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Short Supply Tolerance (%)</label>
+              <input type="number" class="form-control" value="3" min="0" max="100">
+              <div class="form-hint">Deliveries short by less than this % are not counted as breaches.</div>
+            </div>
+            <div class="form-group">
+              <label>Delivery Lead Time SLA (hrs)</label>
+              <input type="number" class="form-control" value="24" min="1">
+            </div>
+            <div class="form-group">
+              <label>Lead Time Breach Penalty</label>
+              <select class="form-control">
+                <option value="none" selected>None</option>
+                <option value="warn">WARN_ONLY</option>
+                <option value="pct">% Deduction from Invoice</option>
+                <option value="fixed">Fixed Debit Note</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>MOP Protection</label>
+              <div class="toggle-wrap">
+                <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                <span class="text-sm">Flag POs below Market Operating Price</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Market Damages Return Policy</label>
+              <select class="form-control">
+                <option value="none">None</option>
+                <option value="full">Full Return</option>
+                <option value="partial">Partial Return</option>
+                <option value="no_return">No Return</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Return Window (days)</label>
+              <input type="number" class="form-control" placeholder="e.g. 7" min="0">
+            </div>
+            <div class="form-group">
+              <label>Performance Review Frequency</label>
+              <select class="form-control">
+                <option value="monthly" selected>Monthly</option>
+                <option value="quarterly">Quarterly</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         SCREEN 4: APPROVALS
+         ===================================================== -->
+    <div class="screen" id="screen-approvals">
+      <div class="flex-between mb-24">
+        <div>
+          <h1 style="font-size:24px;font-weight:700;color:var(--gray-900);">NLC Rate Revision Approvals</h1>
+          <p class="text-sm text-muted mt-8">Review and approve pending rate revisions (NLC changes ≥ 5%)</p>
+        </div>
+      </div>
+
+      <div class="alert alert-info mb-24">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>Rate revisions <strong>&lt; 5%</strong> are auto-approved. Only revisions <strong>≥ 5%</strong> (or cumulative ≥ 5% since last Finance approval) appear here for review.</div>
+      </div>
+
+      <!-- Rate Revision Approvals -->
+      <div id="approval-revisions">
+        <div id="revision-toast" style="display:none;"></div>
+        <div class="card mb-16" id="revision-card-1">
+          <div class="card-body">
+            <div class="flex-between mb-16">
+              <div>
+                <div class="flex gap-12" style="align-items:center;">
+                  <span class="font-mono" style="font-weight:700;color:var(--primary);font-size:15px;">ENT1-RC-2526-0042</span>
+                  <span class="badge badge-amendment" id="revision-badge-1">◆ Rate Revision</span>
+                </div>
+                <div class="text-sm text-muted mt-8">Hindustan Unilever Ltd · Delhi Depot → Mumbai Hub</div>
+              </div>
+              <div class="flex gap-8" id="revision-actions-1">
+                <button class="btn btn-success btn-sm" onclick="approveRevision(1, 'ENT1-RC-2526-0042', 'Vim Dishwash Bar 500g')">Approve Revision</button>
+                <button class="btn btn-danger btn-sm" onclick="rejectRevision(1, 'ENT1-RC-2526-0042', 'Vim Dishwash Bar 500g')">Reject</button>
+              </div>
+            </div>
+
+            <div class="revision-card">
+              <div>
+                <div class="rev-sku">Vim Dishwash Bar 500g <span class="text-xs text-muted">(8901030599994)</span></div>
+                <div class="text-sm text-muted">Current: ₹48.00 / UOM</div>
+              </div>
+              <div class="text-right">
+                <div class="font-mono" style="font-weight:700;font-size:16px;">₹48.00 → ₹52.00</div>
+                <div class="rev-delta up">+₹4.00 (+8.33%) ⬆</div>
+              </div>
+            </div>
+            <div class="alert alert-warning" style="margin:0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>Rate change <strong>≥ 5%</strong> — requires Finance approval. Old rate (₹48.00) remains active for POs until approved. Submitted by <strong>Paridhi Gupta</strong> on 10 Mar 2026.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mb-16" id="revision-card-2">
+          <div class="card-body">
+            <div class="flex-between mb-16">
+              <div>
+                <div class="flex gap-12" style="align-items:center;">
+                  <span class="font-mono" style="font-weight:700;color:var(--primary);font-size:15px;">ENT2-RC-2526-0051</span>
+                  <span class="badge badge-amendment" id="revision-badge-2">◆ Rate Revision</span>
+                </div>
+                <div class="text-sm text-muted mt-8">Parle Products · Pune Depot → Hyderabad Hub</div>
+              </div>
+              <div class="flex gap-8" id="revision-actions-2">
+                <button class="btn btn-success btn-sm" onclick="approveRevision(2, 'ENT2-RC-2526-0051', 'Parle-G Gold 100g')">Approve Revision</button>
+                <button class="btn btn-danger btn-sm" onclick="rejectRevision(2, 'ENT2-RC-2526-0051', 'Parle-G Gold 100g')">Reject</button>
+              </div>
+            </div>
+
+            <div class="revision-card">
+              <div>
+                <div class="rev-sku">Parle-G Gold 100g <span class="text-xs text-muted">(8901035511112)</span></div>
+                <div class="text-sm text-muted">Cumulative delta since last Finance approval: 6.2%</div>
+              </div>
+              <div class="text-right">
+                <div class="font-mono" style="font-weight:700;font-size:16px;">₹15.00 → ₹14.00</div>
+                <div class="rev-delta down">-₹1.00 (-6.67%) ⬇</div>
+              </div>
+            </div>
+            <div class="alert alert-info" style="margin:0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <div>Cumulative delta tracking triggered — multiple small revisions accumulated <strong>≥ 5%</strong> since last Finance approval. Both upward and downward changes require Finance review.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- =====================================================
+     MODALS
+     ===================================================== -->
+
+<!-- Rate Revision Modal -->
+<div class="modal-overlay" id="rateRevisionModal">
+  <div class="modal" style="max-width:720px;">
+    <div class="modal-header">
+      <h3>Amend Contracted Rates</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('rateRevisionModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>&lt; 5% change: auto-approved, live immediately. ≥ 5% change: routed to Finance Approvals. Each SKU line evaluated independently.</div>
+      </div>
+
+      <table class="sku-table" style="margin-top:16px;">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th class="text-right">Current Rate</th>
+            <th class="text-right">New Rate</th>
+            <th class="text-right">Δ %</th>
+            <th>Route</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="sku-name">Dove Body Wash 250ml</div>
+              <div class="sku-ean">8901030769887</div>
+            </td>
+            <td class="text-right font-mono">₹185.00</td>
+            <td><input type="number" class="form-control" value="185.00" style="width:110px;text-align:right;margin-left:auto;" onchange="calcRevDelta(this, 185)"></td>
+            <td class="text-right font-mono rev-pct">0.00%</td>
+            <td><span class="badge badge-draft" style="font-size:11px;">—</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="sku-name">Surf Excel Matic 1kg</div>
+              <div class="sku-ean">8901030722226</div>
+            </td>
+            <td class="text-right font-mono">₹245.00</td>
+            <td><input type="number" class="form-control" value="245.00" style="width:110px;text-align:right;margin-left:auto;" onchange="calcRevDelta(this, 245)"></td>
+            <td class="text-right font-mono rev-pct">0.00%</td>
+            <td><span class="badge badge-draft" style="font-size:11px;">—</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="sku-name">Vim Dishwash Bar 500g</div>
+              <div class="sku-ean">8901030599994</div>
+            </td>
+            <td class="text-right font-mono">₹48.00</td>
+            <td><input type="number" class="form-control" value="52.00" style="width:110px;text-align:right;margin-left:auto;" onchange="calcRevDelta(this, 48)"></td>
+            <td class="text-right font-mono rev-pct" style="color:var(--danger);">+8.33%</td>
+            <td><span class="badge badge-pending" style="font-size:11px;">Finance</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('rateRevisionModal')">Cancel</button>
+      <button class="btn btn-primary">Submit Rate Revisions</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add SKU Modal -->
+<div class="modal-overlay" id="addSkuModal">
+  <div class="modal" style="max-width:780px;">
+    <div class="modal-header">
+      <h3>Add SKU Line</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('addSkuModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Search SKU / EAN <span class="required">*</span></label>
+          <input type="text" id="skuSearchInput" class="form-control" list="skuDatalist" placeholder="Type SKU name, ID or EAN (e.g. SKU25182809, Dove, 8901030769887)...">
+          <datalist id="skuDatalist"></datalist>
+          <div class="form-hint">Sample SKUs: Dove Body Wash, Popular Essentials Phool Makhana, Farm Made Eggs, Masterchow Noodles, etc. Auto-populates HSN, UOM, GST.</div>
+        </div>
+        <div class="form-group">
+          <label>UOM</label>
+          <input type="text" class="form-control" value="EA" readonly>
+        </div>
+        <div class="form-group">
+          <label>HSN Code <span class="required">*</span></label>
+          <input type="text" id="skuHsnInput" class="form-control" placeholder="Auto from product master">
+        </div>
+        <div class="form-group">
+          <label>GST Rate (%)</label>
+          <input type="text" class="form-control" value="—" readonly>
+          <div class="form-hint">Auto-derived from HSN code.</div>
+        </div>
+        <div class="form-group">
+          <label>Pricing Type <span class="required">*</span></label>
+          <select class="form-control" id="skuPricingType" onchange="togglePriceBand()">
+            <option value="fixed">FIXED</option>
+            <option value="band">PRICE_BAND</option>
+          </select>
+        </div>
+        <div class="form-group" id="fixedRateGroup">
+          <label>Contracted Rate (₹ / UOM) <span class="required">*</span></label>
+          <input type="number" class="form-control" placeholder="0.00">
+          <div class="form-hint">All-in rate. Incorporates distance, packaging, handling.</div>
+        </div>
+        <div class="form-group" id="rateMinGroup" style="display:none;">
+          <label>Rate Min (₹)</label>
+          <input type="number" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group" id="rateMaxGroup" style="display:none;">
+          <label>Rate Max (₹)</label>
+          <input type="number" class="form-control" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Committed Quantity <span class="required">*</span></label>
+          <input type="number" class="form-control" placeholder="e.g. 5000">
+        </div>
+        <div class="form-group">
+          <label>Minimum Order Quantity (MOQ)</label>
+          <input type="number" class="form-control" placeholder="e.g. 100">
+          <div class="form-hint">Minimum quantity per order. Drives G5 guardrail.</div>
+        </div>
+        <div class="form-group">
+          <label>Price Deviation Tolerance (%)</label>
+          <input type="number" class="form-control" value="2" min="0">
+          <div class="form-hint">G4b warns if PO deviates beyond. Default 2%.</div>
+        </div>
+        <div class="form-group">
+          <label>Price Deviation Block (%)</label>
+          <input type="number" class="form-control" value="5" min="0">
+          <div class="form-hint">G4a hard-blocks. Must be > Tolerance. Default 5%.</div>
+        </div>
+        <!-- FMCG specific -->
+        <div class="form-group" style="grid-column:1/-1;">
+          <div class="section-title" style="font-size:13px;margin-top:8px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            FMCG-Specific Fields (RC-A)
+          </div>
+        </div>
+        <div class="form-group">
+          <label>MOP (Market Operating Price)</label>
+          <input type="number" class="form-control" placeholder="₹ — for distributors only">
+          <div class="form-hint">PO price below MOP triggers G-MOP flag.</div>
+        </div>
+        <div class="form-group">
+          <label>Q-Commerce Exclusive SKU</label>
+          <div class="toggle-wrap">
+            <div class="toggle" onclick="this.classList.toggle('active')"></div>
+            <span class="text-sm">Flag as Q-commerce only</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="addSkuError" style="display:none;padding:12px 24px;margin:0;min-height:0;"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addSkuModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="handleAddSku()">Add SKU Line</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Upload Modal -->
+<div class="modal-overlay" id="bulkUploadModal">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h3>Bulk Upload Contracts</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('bulkUploadModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-muted mb-16">Upload a CSV file filled using the contract template. Each row defines one SKU line; rows with the same Vendor + Supply Location + Hub form one contract. <strong>Payment_Terms</strong> is days (e.g. 30, 60). <strong>Contract_Start_Date</strong> and <strong>Contract_End_Date</strong> use YYYY-MM-DD format.</p>
+      <div id="bulkUploadDropZone" class="bulk-upload-zone" onclick="document.getElementById('bulkUploadFile').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="event.preventDefault();this.classList.remove('dragover');if(event.dataTransfer?.files?.[0])handleBulkUploadFile({target:{files:event.dataTransfer.files}})">
+        <input type="file" id="bulkUploadFile" accept=".csv" style="display:none;" onchange="handleBulkUploadFile(event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="40" height="40" style="color:var(--gray-400);margin-bottom:12px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-weight:600;color:var(--gray-700);">Drop CSV file here or click to browse</div>
+        <div class="text-xs text-muted mt-4">Accepts .csv only. Max 5 MB.</div>
+      </div>
+      <div id="bulkUploadResult" style="display:none;margin-top:16px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('bulkUploadModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Contract Confirmation Modal -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header">
+      <h3>Create Contract</h3>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('submitModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info mb-16">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>Once created, header fields (entity, vendor, supply location, destination hub) become immutable. Rate changes after creation will go through the NLC revision approval flow.</div>
+      </div>
+      <p style="font-size:14px;color:var(--gray-600);margin-bottom:12px;">The contract will become <strong>Active</strong> on the start date. Are you sure you want to create this contract?</p>
+      <div style="padding:12px 16px;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200);font-size:13px;color:var(--gray-600);">
+        <strong style="color:var(--gray-800);">Note:</strong> Future rate revisions (NLC changes) on this contract will follow the approval flow — changes &lt; 5% are auto-approved; changes ≥ 5% require Finance approval.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('submitModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="closeModal('submitModal');showScreen('list');">Create Contract</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== SAMPLE DATA (aligned with system warehouse IDs, SKUs, vendors) ==========
+const SAMPLE_DATA = {
+  entities: [
+    { code: 'ENT1', name: 'FC Entity 1 (ENT1)', gstin: '29AABCF1234M1Z5' },
+    { code: 'ENT2', name: 'FC Entity 2 (ENT2)', gstin: '29AABCF5678M1Z6' }
+  ],
+  vendors: [
+    { id: 'v1', name: 'Popular Essentials Pvt Ltd', code: 'POP' },
+    { id: 'v2', name: 'Born Good Consumer Products', code: 'BG' },
+    { id: 'v3', name: 'Dhampur Green Organics', code: 'DHG' },
+    { id: 'v4', name: 'Masterchow Foods Pvt Ltd', code: 'MCH' },
+    { id: 'v5', name: 'Farm Made Agri Ventures', code: 'FM' },
+    { id: 'v6', name: 'Akshayakalpa Organic', code: 'AKO' },
+    { id: 'v7', name: 'Origins by The Filter Coffee', code: 'OFB' },
+    { id: 'v8', name: 'Hindustan Unilever Ltd', code: 'HUL' },
+    { id: 'v9', name: 'Nestlé India Ltd', code: 'NIL' },
+    { id: 'v10', name: 'PrintPack India Pvt Ltd', code: 'PPI' }
+  ],
+  supplyLocations: [
+    { id: 'sl1', vendorId: 'v8', name: 'Delhi Depot', code: 'DEL-D1', state: 'Delhi' },
+    { id: 'sl2', vendorId: 'v8', name: 'Mumbai Depot', code: 'MUM-D1', state: 'Maharashtra' },
+    { id: 'sl3', vendorId: 'v9', name: 'Gurgaon Depot', code: 'GUR-D1', state: 'Haryana' },
+    { id: 'sl4', vendorId: 'v1', name: 'Bangalore WH', code: 'BLR-W1', state: 'Karnataka' },
+    { id: 'sl5', vendorId: 'v4', name: 'Pune Factory', code: 'PUN-F1', state: 'Maharashtra' },
+    { id: 'sl6', vendorId: 'v5', name: 'Chennai Depot', code: 'CHE-D1', state: 'Tamil Nadu' },
+    { id: 'sl7', vendorId: 'v10', name: 'Chennai Factory', code: 'CHE-F1', state: 'Tamil Nadu' }
+  ],
+  hubs: [
+    { id: 'h1', code: 'FRHBLRHSK02', name: 'Bangalore Hub — Hoskote', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h2', code: 'FRHBLRKKH01', name: 'Bangalore Hub — KK Halli', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h3', code: 'FRHBLRHSK01', name: 'Bangalore Hub — HSR', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h4', code: 'FCHBLRSJR01', name: 'Dark Store — Sarjapur (SJR)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h5', code: 'FCHBLRHOO01', name: 'Dark Store — Hoodi (HOO)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h6', code: 'FCHBLRJPN01', name: 'Dark Store — JP Nagar (JPN)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h7', code: 'FCHBLRKOR01', name: 'Dark Store — Koramangala (KOR)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h8', code: 'FCHBLRWHF01', name: 'Dark Store — Whitefield (WHF)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h9', code: 'FCHBLRHEB01', name: 'Dark Store — Hebbal (HEB)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h10', code: 'FCHBLRHSR01', name: 'Dark Store — HSR', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h11', code: 'FCHBLRDOD01', name: 'Dark Store — Doddanekundi (DOD)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h12', code: 'FCHBLRVAR01', name: 'Dark Store — Varthur (VAR)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h13', code: 'FCHBLRBEN01', name: 'Dark Store — Benson (BEN)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h14', code: 'FCHBLRHAR01', name: 'Dark Store — Haralur (HAR)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h15', code: 'FCHBLRELC01', name: 'Dark Store — Electronic City (ELC)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h16', code: 'FCHBLRBHO01', name: 'Dark Store — Bhoganhalli (BHO)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h17', code: 'FCHBLRAECS01', name: 'Dark Store — AECS (AECS)', state: 'Karnataka', city: 'Bangalore' },
+    { id: 'h18', code: 'FCHBLRTHA01', name: 'Dark Store — Thanisandra (THA)', state: 'Karnataka', city: 'Bangalore' }
+  ],
+  skus: [
+    { id: 'SKU25182809', ean: '8901030769887', name: 'Dove Body Wash 250ml', hsn: '33051010', gst: 18, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU25225369', ean: '8901030722226', name: 'Popular Essentials Phool Makhana 100 g', hsn: '20079990', gst: 12, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU253925610', ean: '8901030511448', name: 'Troovy Healthy Ragi Chips 70 gm', hsn: '19059090', gst: 12, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU254129272', ean: '8901030599994', name: 'Popular Essentials Anjeer 250 g', hsn: '08042090', gst: 5, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU260549531', ean: '8901030555111', name: 'Born Good Dishwash Gel Spanish Citrus 200 ml', hsn: '34022090', gst: 18, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU25182491', ean: '8901030444455', name: 'Farm Made Free Range Brown Eggs 12 pieces', hsn: '04072100', gst: 0, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU25182490', ean: '8901030444466', name: 'Farm Made Free Range Brown Eggs 6 pieces', hsn: '04072100', gst: 0, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU254938404', ean: '8901030333333', name: 'Akshayakalpa Organic High Protein Milk 250ml', hsn: '04012000', gst: 5, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU254432106', ean: '8901030222222', name: 'Masterchow Hakka Noodles 300 g', hsn: '19023990', gst: 12, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU254432107', ean: '8901030222223', name: 'Masterchow Udon Noodles 300 g', hsn: '19023990', gst: 12, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU260852362', ean: '8901030111111', name: 'Sovi Dishwash Liquid Lemon 100 ml', hsn: '34022090', gst: 18, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU260649964', ean: '8901030009999', name: 'Juice Transparent Stickers', hsn: '48211090', gst: 18, uom: 'EA', category: 'Packaging' },
+    { id: 'SKU254837752', ean: '8901030888888', name: 'Popular Essentials Californian Pistachio 100 g', hsn: '08025100', gst: 12, uom: 'EA', category: 'FMCG' },
+    { id: 'SKU25183644', ean: '', name: 'Custom SKU', hsn: '71320000', gst: 18, uom: 'EA', category: 'FMCG' }
+  ],
+  categories: ['FMCG', 'Private Label', 'Packaging', 'Beverages', 'Household', 'Dairy', 'Snacks'],
+  contracts: [
+    { num: 'ENT1-RC-2526-0042', vendor: 'Hindustan Unilever Ltd', vendorCode: 'HUL', depot: 'Delhi Depot', hubCode: 'FRHBLRKKH01', hubName: 'Bangalore Hub — KK Halli', category: 'FMCG', status: 'active', validity: '1 Year', start: '01 Apr 2025', end: '31 Mar 2026', value: 4235000, skus: 14 },
+    { num: 'ENT1-RC-2526-0038', vendor: 'Popular Essentials Pvt Ltd', vendorCode: 'POP', depot: 'Bangalore WH', hubCode: 'FRHBLRHSK02', hubName: 'Bangalore Hub — Hoskote', category: 'FMCG', status: 'expiring', validity: '6 Months', start: '01 Oct 2025', end: '31 Mar 2026', value: 2890000, skus: 9, daysLeft: 18 },
+    { num: 'ENT2-RC-2526-0051', vendor: 'Masterchow Foods Pvt Ltd', vendorCode: 'MCH', depot: 'Pune Factory', hubCode: 'FCHBLRHSR01', hubName: 'Dark Store — HSR', category: 'FMCG', status: 'amendment', validity: '1 Year', start: '15 Jan 2026', end: '14 Jan 2027', value: 11250000, skus: 22 },
+    { num: 'ENT1-RC-2526-0055', vendor: 'PrintPack India Pvt Ltd', vendorCode: 'PPI', depot: 'Chennai Factory', hubCode: 'FRHBLRHSK02', hubName: 'Bangalore Hub — Hoskote', category: 'Packaging', status: 'active', validity: '3 Months', start: '01 Mar 2026', end: '31 May 2026', value: 375000, skus: 5 },
+    { num: 'ENT1-RC-2526-0060', vendor: 'Akshayakalpa Organic', vendorCode: 'AKO', depot: 'Bangalore WH', hubCode: 'FRHBLRKKH01', hubName: 'Bangalore Hub — KK Halli', category: 'Dairy', status: 'draft', validity: '1 Year', start: '01 Apr 2026', end: '31 Mar 2027', value: 1860000, skus: 8 },
+    { num: 'ENT1-RC-2425-0112', vendor: 'Dhampur Green Organics', vendorCode: 'DHG', depot: 'Chennai Depot', hubCode: 'FRHBLRHSK02', hubName: 'Bangalore Hub — Hoskote', category: 'FMCG', status: 'expired', validity: '1 Year', start: '01 Apr 2024', end: '31 Mar 2025', value: 3520000, skus: 11 }
+  ]
+};
+
+// Populate UI from SAMPLE_DATA for consistency
+function initSampleData() {
+  // Populate contract list table
+  const tbody = document.querySelector('#screen-list table tbody');
+  if (tbody) {
+    tbody.innerHTML = SAMPLE_DATA.contracts.map(c => {
+      const statusClass = { active:'badge-active', expiring:'badge-expiring', amendment:'badge-amendment', draft:'badge-draft', expired:'badge-expired' }[c.status] || 'badge-draft';
+      const statusLabel = { active:'● Active', expiring:'⏰ Expiring Soon', amendment:'◆ Under Amendment', draft:'Draft', expired:'✕ Expired' }[c.status] || c.status;
+      const validityLine = c.daysLeft ? `${c.start} – ${c.end} · <strong style="color:#EA580C;">${c.daysLeft} days left</strong>` : `${c.start} – ${c.end}`;
+      return `<tr class="clickable" data-status="${c.status}" onclick="showScreen('detail');setDetailContract('${c.num}')">
+        <td><span class="font-mono" style="color:var(--primary);font-weight:600;">${c.num}</span></td>
+        <td><div style="font-weight:600;">${c.vendor}</div><div class="text-xs text-muted">${c.depot} → ${c.hubCode}</div></td>
+        <td><span class="badge badge-draft" style="background:#E0E7FF;color:#4338CA;">${c.category}</span></td>
+        <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+        <td><div class="text-sm">${c.validity}</div><div class="text-xs text-muted">${validityLine}</div></td>
+        <td class="text-right font-mono">₹${(c.value/100000).toFixed(2)}L</td>
+        <td class="text-center">${c.skus}</td>
+        <td><button class="btn btn-ghost btn-sm">→</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Populate create form vendor dropdown (2nd select after entity)
+  const createSelects = document.querySelectorAll('#screen-create .form-group select');
+  const vendorSelect = Array.from(createSelects).find(s => s.id !== 'entitySelect' && s.id !== 'supplyLocationSelect' && s.id !== 'destHubSelect' && s.id !== 'categorySelect' && s.id !== 'validitySelect');
+  if (vendorSelect) {
+    vendorSelect.innerHTML = '<option value="">Select approved vendor...</option>' + SAMPLE_DATA.vendors.map(v => `<option value="${v.id}">${v.name}</option>`).join('');
+  }
+
+  // Populate Supply Location dropdown (create form - 3rd form-group after entity, vendor)
+  const supplySelect = document.getElementById('supplyLocationSelect');
+  if (supplySelect) {
+    supplySelect.innerHTML = '<option value="">Select vendor depot...</option>' + SAMPLE_DATA.supplyLocations.map(s => `<option value="${s.id}" data-state="${s.state}">${s.name} (${s.state})</option>`).join('');
+  }
+
+  // Populate Destination Hub dropdown
+  const destSelect = document.getElementById('destHubSelect');
+  if (destSelect) {
+    destSelect.innerHTML = '<option value="">Select hub...</option>' + SAMPLE_DATA.hubs.map(h => `<option value="${h.id}" data-state="${h.state}">${h.code} — ${h.name} (${h.state})</option>`).join('');
+  }
+
+  // Populate Primary Category dropdown
+  const catSelect = document.getElementById('categorySelect');
+  if (catSelect) {
+    catSelect.innerHTML = '<option value="">Select category...</option>' + SAMPLE_DATA.categories.map(c => `<option value="${c.toLowerCase().replace(' ','_')}">${c}</option>`).join('');
+  }
+
+  // Populate SKU datalist and setup Add SKU modal autofill + HSN-to-GST
+  const skuInput = document.getElementById('skuSearchInput');
+  const dl = document.getElementById('skuDatalist');
+  if (skuInput && dl) {
+    dl.innerHTML = '';
+    SAMPLE_DATA.skus.forEach(s => {
+      const o = document.createElement('option');
+      o.value = `${s.id} | ${s.name} | ${s.ean}`;
+      dl.appendChild(o);
+    });
+    skuInput.addEventListener('input', function() {
+      const val = this.value;
+      const match = SAMPLE_DATA.skus.find(s => val.includes(s.id) || val.includes(s.ean) || val.includes(s.name));
+      if (match) {
+        const modal = document.getElementById('addSkuModal');
+        const hsnInput = modal.querySelector('input[placeholder="Auto from product master"]');
+        const gstInput = Array.from(modal.querySelectorAll('.form-group')).find(g => g.querySelector('label')?.textContent?.includes('GST'))?.querySelector('input');
+        const uomInput = Array.from(modal.querySelectorAll('.form-group')).find(g => g.querySelector('label')?.textContent?.includes('UOM'))?.querySelector('input');
+        if (hsnInput) hsnInput.value = match.hsn;
+        if (gstInput) gstInput.value = match.gst + '%';
+        if (uomInput) uomInput.value = match.uom;
+      }
+    });
+  }
+  // HSN-to-GST: when user enters HSN manually (or edits it), derive GST rate
+  const skuHsnInput = document.getElementById('skuHsnInput');
+  if (skuHsnInput) {
+    skuHsnInput.addEventListener('input', function() {
+      const hsn = (this.value || '').trim().replace(/\D/g, '').slice(0, 8);
+      const gstInput = document.getElementById('addSkuModal')?.querySelector('.form-group:has(label:has-text("GST")) input') || Array.from(document.querySelectorAll('#addSkuModal .form-group')).find(g => g.querySelector('label')?.textContent?.includes('GST Rate'))?.querySelector('input');
+      if (gstInput) gstInput.value = hsn ? getGstFromHsn(hsn) + '%' : '—';
+    });
+    skuHsnInput.addEventListener('change', function() {
+      const hsn = (this.value || '').trim().replace(/\D/g, '').slice(0, 8);
+      const gstInput = Array.from(document.querySelectorAll('#addSkuModal .form-group')).find(g => g.querySelector('label')?.textContent?.includes('GST Rate'))?.querySelector('input');
+      if (gstInput && hsn) gstInput.value = getGstFromHsn(hsn) + '%';
+    });
+  }
+}
+function getGstFromHsn(hsn) {
+  const exact = SAMPLE_DATA.skus.find(s => (s.hsn || '').replace(/\D/g, '').startsWith(hsn) || hsn.startsWith((s.hsn || '').replace(/\D/g, '')));
+  if (exact) return exact.gst;
+  const prefix = hsn.slice(0, 4);
+  const map = { '0407': 0, '0401': 5, '0402': 5, '0804': 5, '0802': 12, '1001': 0, '1902': 12, '1905': 12, '2007': 12, '3305': 18, '3402': 18, '4821': 18, '7132': 18, '8504': 18 };
+  if (map[prefix] !== undefined) return map[prefix];
+  if (prefix.startsWith('04')) return 5;
+  if (prefix.startsWith('08') || prefix.startsWith('19')) return 12;
+  if (prefix.startsWith('20') || prefix.startsWith('21')) return 12;
+  if (prefix.startsWith('33') || prefix.startsWith('34') || prefix.startsWith('48') || prefix.startsWith('71') || prefix.startsWith('85')) return 18;
+  return 18;
+}
+function setDetailContract(num) { window._detailContractNum = num; document.getElementById('breadcrumb-current').textContent = num; }
+
+function onVendorChange() {
+  const vSel = document.getElementById('vendorSelect');
+  const sSel = document.getElementById('supplyLocationSelect');
+  if (!vSel || !sSel) return;
+  const vid = vSel.value;
+  const opts = SAMPLE_DATA.supplyLocations.filter(s => !vid || s.vendorId === vid);
+  sSel.innerHTML = '<option value="">Select vendor depot...</option>' + opts.map(s => `<option value="${s.id}" data-state="${s.state}">${s.name} (${s.state})</option>`).join('');
+  computeIGST();
+}
+
+function autoFillContractTitle() {
+  const vSel = document.getElementById('vendorSelect');
+  const hSel = document.getElementById('destHubSelect');
+  const cSel = document.getElementById('categorySelect');
+  const titleInput = document.querySelector('#screen-create input[placeholder*="HUL"]') || document.querySelector('#screen-create input[maxlength="120"]');
+  if (!vSel || !hSel || !cSel || !titleInput) return;
+  const v = SAMPLE_DATA.vendors.find(x => x.id === vSel.value);
+  const h = SAMPLE_DATA.hubs.find(x => x.id === hSel.value);
+  const cat = cSel.options[cSel.selectedIndex]?.text || '';
+  if (v && h && cat) titleInput.value = `${v.code} — ${h.code} → ${cat}`;
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  if (name === 'list' || name === 'detail' || name === 'create') {
+    document.querySelectorAll('.sidebar-nav a')[1].classList.add('active');
+  } else if (name === 'approvals') {
+    document.querySelectorAll('.sidebar-nav a')[2].classList.add('active');
+  } else {
+    document.querySelectorAll('.sidebar-nav a')[0].classList.add('active');
+  }
+
+  const bc = document.getElementById('breadcrumb-current');
+  const titles = { list:'All Contracts', detail:'ENT1-RC-2526-0042', create:'New Rate Contract', approvals:'Approvals' };
+  bc.textContent = titles[name] || '';
+
+  if (name === 'detail') {
+    document.getElementById('expiryBanner').style.display = 'none';
+  }
+}
+
+function switchDetailTab(btn, tabId) {
+  document.querySelectorAll('#screen-detail .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.detail-tab').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+}
+
+
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+  if (id === 'bulkUploadModal') {
+    const r = document.getElementById('bulkUploadResult');
+    if (r) { r.style.display = 'none'; r.innerHTML = ''; }
+  }
+  if (id === 'addSkuModal') {
+    const hsn = (document.getElementById('skuHsnInput')?.value || '').trim().replace(/\D/g, '').slice(0, 8);
+    if (hsn && typeof getGstFromHsn === 'function') {
+      const gstInput = Array.from(document.querySelectorAll('#addSkuModal .form-group')).find(g => g.querySelector('label')?.textContent?.includes('GST Rate'))?.querySelector('input');
+      if (gstInput) gstInput.value = getGstFromHsn(hsn) + '%';
+    }
+  }
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+function downloadContractTemplate() {
+  const headers = 'Vendor_Code,Supply_Location_Code,Hub_Code,Category,SKU_ID,HSN_Code,Contracted_Rate,Committed_Qty,MOQ,Pricing_Type,Payment_Terms,Contract_Start_Date,Contract_End_Date';
+  const sample = 'POP,BLR-W1,FRHBLRKKH01,FMCG,SKU25225369,20079990,125,1000,20,FIXED,30,2026-04-01,2027-03-31';
+  const csv = headers + '\n' + sample + '\n';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'contract_upload_template.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function handleBulkUploadFile(ev) {
+  const file = ev.target.files?.[0];
+  const resultDiv = document.getElementById('bulkUploadResult');
+  if (!file || !resultDiv) return;
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="alert alert-danger" style="margin:0;"><strong>Invalid file.</strong> Please upload a CSV file.</div>';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target?.result || '';
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) {
+      resultDiv.style.display = 'block';
+      resultDiv.innerHTML = '<div class="alert alert-warning" style="margin:0;"><strong>Empty or invalid file.</strong> Template must have headers and at least one data row.</div>';
+      return;
+    }
+    const rows = lines.slice(1).filter(r => r.split(',').some(c => c.trim()));
+    const contractGroups = {};
+    rows.forEach((r, i) => {
+      const cols = r.split(',').map(c => c.trim());
+      const key = (cols[0] || '') + '|' + (cols[1] || '') + '|' + (cols[2] || '');
+      if (!contractGroups[key]) contractGroups[key] = [];
+      contractGroups[key].push(cols);
+    });
+    const count = Object.keys(contractGroups).length;
+    const skuCount = rows.length;
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="alert alert-success" style="margin:0;"><strong>File parsed successfully.</strong> ' + count + ' contract(s), ' + skuCount + ' SKU line(s). In production, these would be created.</div>';
+  };
+  reader.readAsText(file);
+  ev.target.value = '';
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) {
+    if (e.target === this) closeModal(this.id);
+  });
+});
+
+function computeIGST() {
+  const display = document.getElementById('igstDisplay');
+  const supplySelect = document.getElementById('supplyLocationSelect');
+  const destSelect = document.getElementById('destHubSelect');
+  const supplyOpt = supplySelect.options[supplySelect.selectedIndex];
+  const destOpt = destSelect.options[destSelect.selectedIndex];
+  const supplyState = supplyOpt.getAttribute('data-state');
+  const destState = destOpt.getAttribute('data-state');
+  if (!supplyState || !destState) {
+    display.textContent = '—Select supply location & destination hub—';
+    return;
+  }
+  if (supplyState !== destState) {
+    display.innerHTML = '<span class="badge badge-active">Yes — Interstate (IGST)</span><div style="font-size:12px;color:var(--gray-500);margin-top:4px;">' + supplyState + ' ≠ ' + destState + '</div>';
+  } else {
+    display.innerHTML = '<span class="badge" style="background:#DBEAFE;color:#1D4ED8;">No — Intrastate (CGST + SGST)</span><div style="font-size:12px;color:var(--gray-500);margin-top:4px;">Both in ' + supplyState + '</div>';
+  }
+}
+
+function toggleValidityMode() {
+  const validity = document.getElementById('validitySelect').value;
+  const computedWrap = document.getElementById('endDateComputedWrap');
+  const customWrap = document.getElementById('endDateCustomWrap');
+  const isCustom = validity === 'custom';
+  if (computedWrap) computedWrap.style.display = isCustom ? 'none' : '';
+  if (customWrap) customWrap.style.display = isCustom ? 'block' : 'none';
+  updateCustomEndDateMin();
+}
+
+function updateCustomEndDateMin() {
+  if (document.getElementById('validitySelect').value === 'custom') {
+    const start = document.getElementById('startDate').value;
+    const end = document.getElementById('endDateCustom');
+    if (end && start) end.min = start;
+  }
+}
+
+function computeEndDate() {
+  const validity = document.getElementById('validitySelect').value;
+  const startStr = document.getElementById('startDate').value;
+  const display = document.getElementById('endDateDisplay');
+  if (validity === 'custom') return;
+  if (!validity || !startStr) { display.textContent = '—Select validity—'; return; }
+  const start = new Date(startStr);
+  const map = {
+    '1d': () => { start.setDate(start.getDate()+1); },
+    '7d': () => { start.setDate(start.getDate()+7); },
+    '1m': () => { start.setMonth(start.getMonth()+1); },
+    '3m': () => { start.setMonth(start.getMonth()+3); },
+    '6m': () => { start.setMonth(start.getMonth()+6); },
+    '1y': () => { start.setFullYear(start.getFullYear()+1); },
+  };
+  map[validity]();
+  display.textContent = start.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function togglePriceBand() {
+  const pt = document.getElementById('skuPricingType').value;
+  document.getElementById('fixedRateGroup').style.display = pt === 'fixed' ? '' : 'none';
+  document.getElementById('rateMinGroup').style.display = pt === 'band' ? '' : 'none';
+  document.getElementById('rateMaxGroup').style.display = pt === 'band' ? '' : 'none';
+}
+
+function calcRevDelta(input, base) {
+  const newVal = parseFloat(input.value);
+  const row = input.closest('tr');
+  const pctCell = row.querySelector('.rev-pct');
+  const routeCell = row.querySelector('td:last-child .badge');
+  const delta = ((newVal - base) / base * 100);
+  const absDelta = Math.abs(delta);
+  const sign = delta >= 0 ? '+' : '';
+  pctCell.textContent = sign + delta.toFixed(2) + '%';
+  pctCell.style.color = absDelta >= 5 ? 'var(--danger)' : absDelta > 0 ? 'var(--warning)' : '';
+  if (absDelta === 0) {
+    routeCell.textContent = '—';
+    routeCell.className = 'badge badge-draft';
+    routeCell.style.fontSize = '11px';
+  } else if (absDelta < 5) {
+    routeCell.textContent = 'Auto';
+    routeCell.className = 'badge badge-active';
+    routeCell.style.fontSize = '11px';
+  } else {
+    routeCell.textContent = 'Finance';
+    routeCell.className = 'badge badge-pending';
+    routeCell.style.fontSize = '11px';
+  }
+}
+
+function updateCategoryProfile() {
+  const cat = document.getElementById('categorySelect').value;
+  const label = document.getElementById('categoryProfileLabel');
+  const names = { fmcg:'RC-A: FMCG / Beverages / Household', private_label:'RC-C: Private Label', packaging:'RC-D: Packaging / Consumables' };
+  label.textContent = cat ? '— ' + names[cat] : '— Select a category to configure';
+}
+
+document.querySelectorAll('#contractFilterBar .filter-chip').forEach(chip => {
+  chip.addEventListener('click', function() {
+    const filter = this.getAttribute('data-filter');
+    if (!filter) return;
+    this.parentElement.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    filterContractList(filter);
+  });
+});
+
+function filterContractList(statusFilter) {
+  const tbody = document.getElementById('contractListBody');
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll('tr[data-status]');
+  rows.forEach(tr => {
+    const status = tr.getAttribute('data-status');
+    const show = statusFilter === 'all' || status === statusFilter;
+    tr.style.display = show ? '' : 'none';
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initSampleData);
+
+function handleAddSku() {
+  const modal = document.getElementById('addSkuModal');
+  const body = modal.querySelector('.modal-body');
+  const skuInput = document.getElementById('skuSearchInput') || body?.querySelector('input[list="skuDatalist"]') || body?.querySelector('input[placeholder*="SKU"]');
+  const rateInput = modal.querySelector('#fixedRateGroup input[type="number"]');
+  const qtyInput = body?.querySelector('input[placeholder="e.g. 5000"]');
+  const errorDiv = document.getElementById('addSkuError');
+  const errors = [];
+
+  if (!skuInput) errors.push('SKU search field not found. Please refresh the page.');
+  else if (!skuInput.value.trim()) errors.push('Search SKU / EAN is required — type a SKU ID (e.g. SKU25182809), product name, or EAN barcode');
+  if (document.getElementById('skuPricingType').value === 'fixed' && (!rateInput || !rateInput.value || parseFloat(rateInput.value) <= 0)) errors.push('Contracted Rate must be greater than 0');
+  if (!qtyInput || !qtyInput.value || parseInt(qtyInput.value) <= 0) errors.push('Committed Quantity is required');
+
+  if (errors.length > 0) {
+    errorDiv.style.display = 'block';
+    errorDiv.innerHTML = '<div class="alert alert-danger" style="margin-bottom:0;">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>' +
+      '<div><strong>Cannot add SKU line</strong> — please fix the following:<ul style="margin:6px 0 0 16px;font-size:13px;">' +
+      errors.map(e => '<li>' + e + '</li>').join('') +
+      '</ul></div></div>';
+    errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    [skuInput, rateInput, qtyInput].forEach(el => {
+      if (el) {
+        const isEmpty = !el.value || (el.type === 'number' && parseFloat(el.value) <= 0);
+        el.style.borderColor = isEmpty ? 'var(--danger)' : '';
+      }
+    });
+    return;
+  }
+
+  errorDiv.style.display = 'none';
+  [skuInput, rateInput, qtyInput].forEach(el => { if (el) el.style.borderColor = ''; });
+
+  const hsnInput = document.getElementById('skuHsnInput') || body.querySelector('input[placeholder="Auto from product master"]');
+  const uomInput = body.querySelector('input[value="EA"]') || body.querySelector('.form-group input[readonly]');
+  const moqInput = body.querySelector('input[placeholder="e.g. 100"]');
+  const pricingType = document.getElementById('skuPricingType').value;
+  const rateMinInput = modal.querySelector('#rateMinGroup input[type="number"]');
+  const rateMaxInput = modal.querySelector('#rateMaxGroup input[type="number"]');
+
+  const skuVal = skuInput.value.trim();
+  const hsnVal = hsnInput?.value?.trim() || '—';
+  const uomVal = uomInput?.value?.trim() || 'EA';
+  const qtyVal = parseInt(qtyInput.value) || 0;
+  const moqVal = moqInput?.value?.trim() || '—';
+
+  let rateNum = 0;
+  let rateDisplay = '—';
+  if (pricingType === 'fixed' && rateInput?.value) {
+    rateNum = parseFloat(rateInput.value);
+    rateDisplay = '₹' + rateNum.toFixed(2);
+  } else if (pricingType === 'band' && rateMinInput?.value && rateMaxInput?.value) {
+    const rMin = parseFloat(rateMinInput.value);
+    const rMax = parseFloat(rateMaxInput.value);
+    rateNum = (rMin + rMax) / 2;
+    rateDisplay = '₹' + rMin.toFixed(2) + '–₹' + rMax.toFixed(2);
+  }
+
+  const gstPct = (() => {
+    const gstInp = modal.querySelector('.form-group') && Array.from(modal.querySelectorAll('.form-group')).find(g => g.querySelector('label')?.textContent?.includes('GST Rate'))?.querySelector('input');
+    const gstVal = (gstInp?.value || '').replace(/[^\d]/g, '');
+    if (gstVal) return parseInt(gstVal, 10);
+    const hsnDigits = (hsnVal || '').replace(/\D/g, '').slice(0, 8);
+    return hsnDigits ? getGstFromHsn(hsnDigits) : 18;
+  })();
+
+  const createActive = document.getElementById('screen-create')?.classList.contains('active');
+  const detailActive = document.getElementById('screen-detail')?.classList.contains('active');
+  const tbody = createActive ? document.getElementById('createSkuLinesBody') : (detailActive ? document.getElementById('detailSkuLinesBody') : document.getElementById('createSkuLinesBody'));
+  const emptyState = document.getElementById('skuLinesEmptyState');
+  const tableWrap = document.getElementById('createSkuLinesTableWrap');
+  if (tbody) {
+    const tr = document.createElement('tr');
+    if (detailActive) {
+      const rateNum = pricingType === 'fixed' && rateInput?.value ? parseFloat(rateInput.value) : (pricingType === 'band' && rateMinInput?.value ? parseFloat(rateMinInput.value) : 0);
+      const gstPct = 18;
+      const gstAmt = rateNum > 0 ? (rateNum * gstPct / 100) : 0;
+      const landed = rateNum + gstAmt;
+      tr.innerHTML = '<td><div class="sku-inline"><div style="width:32px;height:32px;border-radius:6px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:14px;">🧴</div><div><div class="sku-name">' + escapeHtml(skuVal) + '</div><div class="sku-ean">' + escapeHtml(skuVal) + '</div></div></div></td>' +
+        '<td class="font-mono text-sm">' + escapeHtml(hsnVal) + '</td>' +
+        '<td>' + escapeHtml(uomVal) + '</td>' +
+        '<td><span class="badge badge-draft" style="font-size:11px;">' + (pricingType === 'band' ? 'PRICE_BAND' : 'FIXED') + '</span></td>' +
+        '<td class="text-right font-mono" style="font-weight:600;">' + rateDisplay + '</td>' +
+        '<td class="text-right">' + (rateNum > 0 ? gstPct + '%' : '—') + '</td>' +
+        '<td class="text-right font-mono">' + (rateNum > 0 ? '₹' + gstAmt.toFixed(2) : '—') + '</td>' +
+        '<td class="text-right font-mono" style="font-weight:600;">' + (rateNum > 0 ? '₹' + landed.toFixed(2) : '—') + '</td>' +
+        '<td class="text-right font-mono">' + qtyVal.toLocaleString('en-IN') + '</td>' +
+        '<td><span class="badge badge-active" style="font-size:11px;">Active</span></td>' +
+        '<td class="font-mono text-sm">' + escapeHtml(moqVal) + '</td>' +
+        '<td><button class="btn btn-ghost btn-sm" type="button">✎</button></td>';
+    } else {
+      tr.innerHTML = '<td><div class="sku-inline"><div style="width:32px;height:32px;border-radius:6px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;font-size:14px;">🧴</div><div><div class="sku-name">' + escapeHtml(skuVal) + '</div></div></div></td>' +
+        '<td class="font-mono text-sm">' + escapeHtml(hsnVal) + '</td>' +
+        '<td>' + escapeHtml(uomVal) + '</td>' +
+        '<td><span class="badge badge-draft" style="font-size:11px;">' + (pricingType === 'band' ? 'PRICE_BAND' : 'FIXED') + '</span></td>' +
+        '<td class="text-right font-mono" style="font-weight:600;">' + rateDisplay + '</td>' +
+        '<td class="text-right font-mono">' + qtyVal.toLocaleString('en-IN') + '</td>' +
+        '<td class="font-mono text-sm">' + escapeHtml(moqVal) + '</td>' +
+        '<td><button class="btn btn-ghost btn-sm" type="button">✎</button></td>';
+      tr.dataset.rate = String(rateNum);
+      tr.dataset.qty = String(qtyVal);
+      tr.dataset.gst = String(gstPct);
+    }
+    tbody.appendChild(tr);
+    if (emptyState) emptyState.style.display = 'none';
+    if (tableWrap) tableWrap.style.display = 'block';
+    tableWrap?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    updateEstimatedContractValue();
+  }
+
+  errorDiv.style.display = 'block';
+  errorDiv.innerHTML = '<div class="alert alert-success" style="margin-bottom:0;">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/></svg>' +
+    '<div><strong>SKU line added successfully.</strong> The line has been added to the SKU Lines table.</div></div>';
+  setTimeout(function() { closeModal('addSkuModal'); errorDiv.style.display = 'none'; }, 1500);
+}
+
+function updateEstimatedContractValue() {
+  const tbody = document.getElementById('createSkuLinesBody');
+  const display = document.getElementById('estValueDisplay');
+  if (!tbody || !display) return;
+  let total = 0;
+  tbody.querySelectorAll('tr').forEach(tr => {
+    let rate = parseFloat(tr.dataset.rate);
+    let qty = parseInt(tr.dataset.qty, 10);
+    let gst = parseFloat(tr.dataset.gst) || 0;
+    if (isNaN(rate) || isNaN(qty)) {
+      const cells = tr.querySelectorAll('td');
+      if (cells.length >= 6) {
+        rate = parseFloat((cells[4]?.textContent || '').replace(/[^\d.]/g, '')) || 0;
+        qty = parseInt((cells[5]?.textContent || '').replace(/[^\d]/g, ''), 10) || 0;
+      }
+    }
+    if (!gst && typeof getGstFromHsn === 'function') {
+      const hsnCell = tr.querySelectorAll('td')[1];
+      const hsnDigits = (hsnCell?.textContent || '').replace(/\D/g, '').slice(0, 8);
+      if (hsnDigits) gst = getGstFromHsn(hsnDigits);
+    }
+    if (rate > 0 && qty > 0) {
+      total += rate * qty * (1 + gst / 100);
+    }
+  });
+  display.textContent = '₹' + total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function escapeHtml(s) {
+  const div = document.createElement('div');
+  div.textContent = (s == null || s === '') ? '' : String(s);
+  return div.innerHTML;
+}
+
+function showToast(containerId, message, type) {
+  const toast = document.getElementById(containerId);
+  toast.style.display = 'block';
+  toast.innerHTML = '<div class="alert alert-' + type + '" style="margin-bottom:16px;">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    (type === 'success'
+      ? '<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22,4 12,14.01 9,11.01"/>'
+      : '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>') +
+    '</svg><div>' + message + '</div></div>';
+  toast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  setTimeout(function() { toast.style.display = 'none'; }, 4000);
+}
+
+function approveRevision(id, contractNum, skuName) {
+  var badge = document.getElementById('revision-badge-' + id);
+  var actions = document.getElementById('revision-actions-' + id);
+  var card = document.getElementById('revision-card-' + id);
+  badge.className = 'badge badge-active';
+  badge.textContent = '✓ Approved';
+  actions.innerHTML = '<span class="badge badge-active" style="font-size:13px;padding:6px 14px;">✓ Rate approved</span>';
+  card.style.borderLeft = '4px solid var(--success)';
+  card.style.opacity = '0.75';
+  showToast('revision-toast', 'Rate revision for <strong>' + skuName + '</strong> on <strong>' + contractNum + '</strong> has been <strong>approved</strong>. New rate is now live.', 'success');
+}
+
+function rejectRevision(id, contractNum, skuName) {
+  if (!confirm('Reject rate revision for ' + skuName + ' on ' + contractNum + '? The old rate will remain active.')) return;
+  var badge = document.getElementById('revision-badge-' + id);
+  var actions = document.getElementById('revision-actions-' + id);
+  var card = document.getElementById('revision-card-' + id);
+  badge.className = 'badge badge-expired';
+  badge.textContent = '✕ Rejected';
+  actions.innerHTML = '<span class="badge badge-expired" style="font-size:13px;padding:6px 14px;">✕ Revision rejected</span>';
+  card.style.borderLeft = '4px solid var(--danger)';
+  card.style.opacity = '0.6';
+  showToast('revision-toast', 'Rate revision for <strong>' + skuName + '</strong> on <strong>' + contractNum + '</strong> has been <strong>rejected</strong>. Old rate unchanged.', 'danger');
+}
+
+</script>
+
+</body>
+</html>
