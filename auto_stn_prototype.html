@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-STN Management — Automated Stock Transfer System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary: #4F46E5;
+  --primary-light: #EEF2FF;
+  --primary-dark: #3730A3;
+  --success: #059669;
+  --success-light: #D1FAE5;
+  --warning: #D97706;
+  --warning-light: #FEF3C7;
+  --danger: #DC2626;
+  --danger-light: #FEE2E2;
+  --info: #2563EB;
+  --info-light: #DBEAFE;
+  --purple: #7C3AED;
+  --purple-light: #EDE9FE;
+  --gray-50: #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+  --shadow: 0 1px 3px rgba(0,0,0,.1);
+  --shadow-md: 0 4px 6px rgba(0,0,0,.07);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,.1);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--gray-50); color: var(--gray-800); min-height: 100vh; }
+
+.sidebar {
+  position: fixed; left:0; top:0; bottom:0; width: 260px; background: var(--gray-900);
+  padding: 24px 0; z-index: 100; display: flex; flex-direction: column;
+}
+.sidebar-brand { padding: 0 24px 24px; border-bottom: 1px solid rgba(255,255,255,.1); margin-bottom: 8px; }
+.sidebar-brand h2 { color: #fff; font-size: 18px; font-weight: 700; }
+.sidebar-brand span { color: var(--primary); }
+.sidebar-nav { flex:1; padding: 8px 12px; overflow-y: auto; }
+.sidebar-nav a {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius);
+  color: var(--gray-400); text-decoration: none; font-size: 14px; font-weight: 500;
+  transition: all .15s; margin-bottom: 2px; cursor: pointer;
+}
+.sidebar-nav a:hover { color: #fff; background: rgba(255,255,255,.06); }
+.sidebar-nav a.active { color: #fff; background: var(--primary); }
+.sidebar-nav a svg { width:20px; height:20px; flex-shrink:0; }
+.sidebar-section { padding: 16px 12px 6px; font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; }
+.sidebar-user { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; gap: 12px; }
+.sidebar-user .avatar { width:36px; height:36px; border-radius:50%; background: var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; }
+.sidebar-user .user-info { color: var(--gray-300); font-size:13px; }
+.sidebar-user .user-info strong { display:block; color:#fff; font-size:14px; }
+
+.main { margin-left: 260px; min-height: 100vh; }
+.topbar {
+  background: #fff; border-bottom: 1px solid var(--gray-200);
+  padding: 0 32px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top:0; z-index:50;
+}
+.topbar-left { display:flex; align-items:center; gap:16px; }
+.topbar-left h1 { font-size:20px; font-weight:700; color:var(--gray-900); }
+.breadcrumb { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--gray-400); }
+.breadcrumb a { color:var(--gray-500); text-decoration:none; cursor:pointer; }
+.breadcrumb a:hover { color:var(--primary); }
+
+.content { padding: 24px 32px 48px; }
+.card { background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--gray-200); box-shadow: var(--shadow-sm); }
+.card-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-100); display: flex; align-items: center; justify-content: space-between; }
+.card-header h3 { font-size:16px; font-weight:600; }
+.card-body { padding: 24px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 18px; border-radius: var(--radius); font-size: 14px; font-weight: 500;
+  border: none; cursor: pointer; transition: all .15s; text-decoration: none;
+}
+.btn-primary { background:var(--primary); color:#fff; }
+.btn-primary:hover { background:var(--primary-dark); }
+.btn-secondary { background:var(--gray-100); color:var(--gray-700); border:1px solid var(--gray-200); }
+.btn-secondary:hover { background:var(--gray-200); }
+.btn-success { background:var(--success); color:#fff; }
+.btn-success:hover { background:#047857; }
+.btn-danger { background:var(--danger); color:#fff; }
+.btn-danger:hover { background:#B91C1C; }
+.btn-warning { background:var(--warning); color:#fff; }
+.btn-warning:hover { background:#B45309; }
+.btn-ghost { background:transparent; color:var(--gray-600); border:none; }
+.btn-ghost:hover { background:var(--gray-100); }
+.btn-sm { padding:6px 12px; font-size:13px; }
+.btn-lg { padding:12px 24px; font-size:15px; }
+.btn svg { width:16px; height:16px; }
+
+.badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap;
+}
+.badge-draft { background:var(--gray-100); color:var(--gray-600); }
+.badge-pending { background:var(--warning-light); color:var(--warning); }
+.badge-approved { background:var(--info-light); color:var(--info); }
+.badge-active { background:var(--success-light); color:var(--success); }
+.badge-expired { background:var(--danger-light); color:var(--danger); }
+.badge-cancelled { background:var(--gray-200); color:var(--gray-600); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: #fff; border-radius: var(--radius-lg); border: 1px solid var(--gray-200);
+  padding: 20px 24px; display: flex; align-items: flex-start; gap: 16px;
+}
+.stat-icon { width:44px; height:44px; border-radius:var(--radius); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.stat-icon svg { width:22px; height:22px; }
+.stat-icon.blue { background:var(--info-light); color:var(--info); }
+.stat-icon.green { background:var(--success-light); color:var(--success); }
+.stat-icon.orange { background:var(--warning-light); color:var(--warning); }
+.stat-icon.red { background:var(--danger-light); color:var(--danger); }
+.stat-icon.purple { background:var(--purple-light); color:var(--purple); }
+.stat-content h4 { font-size:13px; font-weight:500; color:var(--gray-500); margin-bottom:4px; }
+.stat-content .stat-value { font-size:28px; font-weight:700; color:var(--gray-900); line-height:1.1; }
+.stat-content .stat-sub { font-size:12px; color:var(--gray-400); margin-top:4px; }
+
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th {
+  text-align:left; padding:12px 16px; font-size:12px; font-weight:600; color:var(--gray-500);
+  text-transform:uppercase; letter-spacing:.5px; background:var(--gray-50); border-bottom:1px solid var(--gray-200);
+  white-space:nowrap;
+}
+td { padding:14px 16px; border-bottom:1px solid var(--gray-100); font-size:14px; color:var(--gray-700); }
+tr:hover td { background:var(--gray-50); }
+.text-right { text-align:right; }
+.text-center { text-align:center; }
+.text-muted { color:var(--gray-400); }
+.text-sm { font-size:13px; }
+.font-mono { font-family:'SF Mono','Fira Code',monospace; font-size:13px; }
+
+.form-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:20px; }
+.form-group { display:flex; flex-direction:column; gap:6px; }
+.form-group label { font-size:13px; font-weight:600; color:var(--gray-600); }
+.form-group label .required { color:var(--danger); }
+.form-control {
+  padding:9px 12px; border:1px solid var(--gray-300);
+  border-radius:var(--radius); font-size:14px; transition:all .15s; font-family:inherit; background:#fff;
+}
+.form-control:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(79,70,229,.1); }
+.form-hint { font-size:12px; color:var(--gray-400); }
+select.form-control { appearance:auto; }
+
+.alert {
+  padding:14px 20px; border-radius:var(--radius); display:flex; align-items:flex-start; gap:12px;
+  margin-bottom:20px; font-size:14px;
+}
+.alert svg { width:20px; height:20px; flex-shrink:0; margin-top:1px; }
+.alert-info { background:var(--info-light); color:#1D4ED8; border:1px solid #93C5FD; }
+.alert-warning { background:var(--warning-light); color:#92400E; border:1px solid #FCD34D; }
+.alert-danger { background:var(--danger-light); color:#991B1B; border:1px solid #FCA5A5; }
+.alert-success { background:var(--success-light); color:#065F46; border:1px solid #6EE7B7; }
+
+.tabs { display:flex; gap:0; border-bottom:2px solid var(--gray-200); margin-bottom:24px; }
+.tab {
+  padding:12px 20px; font-size:14px; font-weight:500; color:var(--gray-500); cursor:pointer;
+  border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .15s;
+  background:none; border-top:none; border-left:none; border-right:none;
+}
+.tab:hover { color:var(--gray-700); }
+.tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+
+.filter-bar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.filter-chip {
+  padding:6px 14px; border-radius:20px; font-size:13px; font-weight:500;
+  border:1px solid var(--gray-200); background:#fff; color:var(--gray-600);
+  cursor:pointer; transition:all .15s;
+}
+.filter-chip:hover { border-color:var(--primary); color:var(--primary); }
+.filter-chip.active { background:var(--primary); color:#fff; border-color:var(--primary); }
+
+.bulk-upload-zone {
+  border:2px dashed var(--gray-300); border-radius:var(--radius-lg);
+  padding:40px 24px; text-align:center; cursor:pointer;
+  transition:all .2s; background:var(--gray-50);
+}
+.bulk-upload-zone:hover, .bulk-upload-zone.dragover {
+  border-color:var(--primary); background:var(--primary-light);
+}
+
+.modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:none; align-items:center; justify-content:center;
+  z-index:200; backdrop-filter:blur(2px);
+}
+.modal-overlay.show { display:flex; }
+.modal {
+  background:#fff; border-radius:var(--radius-lg);
+  width:90%; max-width:520px; max-height:85vh;
+  overflow:hidden; box-shadow:var(--shadow-lg);
+}
+.modal-header { padding:20px 24px; border-bottom:1px solid var(--gray-200); display:flex; align-items:center; justify-content:space-between; }
+.modal-header h3 { font-size:18px; font-weight:700; }
+.modal-body { padding:24px; overflow-y:auto; }
+.modal-footer { padding:16px 24px; border-top:1px solid var(--gray-200); display:flex; justify-content:flex-end; gap:10px; }
+
+.action-card {
+  border: 1px solid var(--gray-200); border-radius: var(--radius-lg);
+  padding: 24px; display: flex; gap: 20px; align-items: flex-start;
+  background: #fff; transition: all .15s; margin-bottom: 16px;
+}
+.action-card:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+.action-card .card-icon { width: 48px; height: 48px; border-radius: var(--radius); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.action-card .card-icon svg { width: 24px; height: 24px; }
+.action-card .card-icon.blue { background: var(--info-light); color: var(--info); }
+.action-card .card-icon.purple { background: var(--purple-light); color: var(--purple); }
+.action-card .card-icon.green { background: var(--success-light); color: var(--success); }
+.action-card .card-content { flex: 1; }
+.action-card .card-content h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.action-card .card-content p { font-size: 14px; color: var(--gray-600); line-height: 1.5; margin-bottom: 12px; }
+
+.screen { display:none; }
+.screen.active { display:block; }
+.mb-16 { margin-bottom: 16px; }
+.mb-24 { margin-bottom: 24px; }
+.flex { display: flex; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-12 { gap: 12px; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+.row-highlight-missing { background: #FEF2F2 !important; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand"><h2><span>FC</span> Inventory</h2></div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-section">Stock Transfer</div>
+    <a href="#" class="active" data-screen="dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+      Auto-STN Dashboard
+    </a>
+    <a href="#" data-screen="config">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3"/></svg>
+      FSN Configuration
+    </a>
+    <a href="#" data-screen="generate">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      Generate & Create STNs
+    </a>
+    <a href="#" data-screen="stn-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Generated STNs
+    </a>
+    <a href="#" data-screen="visibility">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Inventory Shortfall
+    </a>
+    <a href="#" data-screen="deracking">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+      Deracking Dashboard
+    </a>
+    <a href="#" data-screen="time-config">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      STN Time Configuration
+    </a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="avatar">PG</div>
+    <div class="user-info"><strong>paridhi.gupta</strong>Planning Team</div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="breadcrumb" id="breadcrumb">
+        <a href="#" data-screen="dashboard">Auto-STN Management</a>
+        <span>/</span>
+        <span id="breadcrumb-current">Dashboard</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- ========== DASHBOARD ========== -->
+    <div id="screen-dashboard" class="screen active">
+      <div class="alert alert-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>Welcome to Auto-STN Management</strong><br>
+          Automated Stock Transfer Note (STN) Generation System. Configure SKU settings, manage classifications, and generate intelligent STN recommendations from REPLENISHMENT_HUB to CLUB_HOUSE locations based on inventory projections, DRR cycles, and safety stock requirements.
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg></div>
+          <div class="stat-content"><h4>Missing Config</h4><div class="stat-value" id="stat-missing-config">127</div><div class="stat-sub">SKUs in source WH</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+          <div class="stat-content"><h4>STNs Today</h4><div class="stat-value" id="stat-stn-today">23</div><div class="stat-sub">Auto-generated</div></div>
+        </div>
+      </div>
+
+      <div class="action-card" onclick="showScreen('config')" style="cursor:pointer;">
+        <div class="card-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/></svg></div>
+        <div class="card-content">
+          <h4>FSN Configuration</h4>
+          <p>Configure MDQ, Safety Stock, DRR, DOH and Transfer Type (Y/N for Cross Dock) for each FSN×Warehouse combination. Supports upload up to 50k rows.</p>
+          <button class="btn btn-primary">Manage Configuration</button>
+        </div>
+      </div>
+      <div class="action-card" onclick="showScreen('generate')" style="cursor:pointer;">
+        <div class="card-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div class="card-content">
+          <h4>Generate & Create STNs</h4>
+          <p>Auto-generate STNs at configured times, or trigger on-demand. Inventory is auto-allocated. Cancel STNs before picking starts.</p>
+          <button class="btn btn-success">Generate STNs</button>
+        </div>
+      </div>
+      <div class="action-card" onclick="showScreen('visibility')" style="cursor:pointer;">
+        <div class="card-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="card-content">
+          <h4>Inventory Shortfall Dashboard</h4>
+          <p>SKUs transferred less than required due to insufficient quantity at source. Category × Sub Category × Super Category × PID × SKU × SKU Name × Qty Required × Qty Transferred × Reason.</p>
+          <button class="btn btn-danger">View Shortfall</button>
+        </div>
+      </div>
+      <div class="action-card" onclick="showScreen('deracking')" style="cursor:pointer;">
+        <div class="card-icon orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+        <div class="card-content">
+          <h4>Deracking Dashboard</h4>
+          <p>View SKUs to be de-racked at date level for the next 7 days. Category × Sub Category × Super Category × PID × SKU × SKU Name. Download CSV for date or date range.</p>
+          <button class="btn btn-warning">View Deracking</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== FSN CONFIGURATION ========== -->
+    <div id="screen-config" class="screen">
+      <div class="alert alert-info mb-24">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>
+          <strong>Welcome to FSN Configuration</strong><br>
+          Configure SKU settings and classifications for each FSN. Upload configuration and classification CSVs, then view missing entries below.
+        </div>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(2, 1fr); margin-bottom:24px;">
+        <div class="action-card" onclick="document.getElementById('configFile').click()" style="cursor:pointer;">
+          <div class="card-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div class="card-content">
+            <h4>FSN Configuration</h4>
+            <p>Configure MDQ (Minimum Display Quantity), Safety Stock, DRR (Daily Replenishment Rate), and DOH (Days on Hand) for each FSN×Warehouse combination.</p>
+            <button class="btn btn-primary">Manage Configuration</button>
+          </div>
+        </div>
+        <div class="action-card" style="cursor:pointer;">
+          <div class="card-icon purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div>
+          <div class="card-content">
+            <h4>FSN Classification</h4>
+            <p>Manage FSN classifications (FULL_CROSS / PARTIAL_CROSS) and zone types (FOOD, NON_FOOD, BREAD, EGGS, MILK, COLD, FROZEN) for each FSN.</p>
+            <button class="btn btn-primary" style="background:var(--purple);">Manage Classification</button>
+          </div>
+        </div>
+      </div>
+
+      <input type="file" id="configFile" accept=".csv" style="display:none;">
+
+      <div class="card mt-24">
+        <div class="card-header flex-between">
+          <h3>Missing FSNs</h3>
+        </div>
+        <div class="card-body">
+          <div class="tabs">
+            <button class="tab config-tab active" data-config-tab="classification">FSNs Missing Classification</button>
+            <button class="tab config-tab" data-config-tab="config">FSNs Missing Configuration</button>
+          </div>
+          <div id="config-tab-classification" class="config-tab-pane">
+            <div class="filter-bar mb-16">
+              <label class="text-sm text-muted">City:</label>
+              <select class="form-control" id="config-city-filter" style="width:200px;"></select>
+              <button class="btn btn-primary btn-sm" id="config-apply-classification">Apply</button>
+              <button class="btn btn-primary btn-sm" id="config-download-classification">Download CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>FSN ID</th><th>City</th></tr></thead>
+                <tbody id="tbody-missing-classification"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="config-tab-config" class="config-tab-pane" style="display:none;">
+            <div class="filter-bar mb-16">
+              <label class="text-sm text-muted">Warehouse ID:</label>
+              <select class="form-control" id="config-warehouse-filter" style="width:200px;"></select>
+              <button class="btn btn-primary btn-sm" id="config-apply-config">Apply</button>
+              <button class="btn btn-primary btn-sm" id="config-download-config">Download CSV</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>FSN ID</th><th>Warehouse ID</th></tr></thead>
+                <tbody id="tbody-missing-config"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== GENERATE & CREATE STNs ========== -->
+    <div id="screen-generate" class="screen">
+      <div class="card mb-24">
+        <div class="card-header flex-between">
+          <h3>Generate & Create STNs</h3>
+          <span class="badge badge-active">Auto-STN Generation</span>
+        </div>
+        <div class="card-body">
+          <div class="grid-2">
+            <div>
+              <h4 class="mb-16">Generation Parameters</h4>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label>Warehouse ID (Source) <span class="required">*</span></label>
+                  <select class="form-control" id="generate-source-wh"><option value="">Select REPLENISHMENT_HUB...</option></select>
+                </div>
+                <div class="form-group">
+                  <label>Calculation Date</label>
+                  <input type="date" class="form-control" value="2026-03-16">
+                </div>
+                <div class="form-group">
+                  <label>Classification Filter</label>
+                  <select class="form-control"><option>All Classifications</option><option>FULL_CROSS</option><option>PARTIAL_CROSS</option></select>
+                </div>
+                <div class="form-group">
+                  <label>Zone Type Filter</label>
+                  <select class="form-control"><option>All Zone Types</option><option>FOOD</option><option>NON_FOOD</option><option>BREAD</option><option>COLD</option><option>FROZEN</option></select>
+                </div>
+                <div class="form-group">
+                  <label>Destination Warehouse (Optional)</label>
+                  <select class="form-control" id="generate-dest-wh"><option value="">All Destinations</option></select>
+                  <span class="form-hint">Filter recommendations for specific Source-Destination pair</span>
+                </div>
+                <div class="form-group">
+                  <label>Deracking Window (Days)</label>
+                  <input type="number" class="form-control" value="1" min="1">
+                </div>
+              </div>
+              <div class="alert alert-warning mt-16" id="autoGenAlert" style="display:none;">
+                Auto-STN has already been generated for today. Capturing reason for manual generation is required.
+              </div>
+              <div class="form-group mt-16" id="reasonGroup" style="display:none;">
+                <label>Reason for Manual Generation <span class="required">*</span></label>
+                <textarea class="form-control" rows="2" placeholder="e.g. Additional inventory received, urgent club house request..."></textarea>
+              </div>
+              <div class="flex gap-12 mt-16">
+                <button class="btn btn-success" onclick="document.getElementById('autoGenAlert').style.display='flex'; document.getElementById('reasonGroup').style.display='block';">Generate STNs Now</button>
+                <button class="btn btn-secondary">Download Recommendations CSV</button>
+              </div>
+            </div>
+            <div>
+              <h4 class="mb-16">Generation Process</h4>
+              <ol style="padding-left:18px; line-height:2; color:var(--gray-700); font-size:14px;">
+                <li>Fetch FSN classifications (filtered by type/zone)</li>
+                <li>Aggregate warehouse & club house inventory by FSN</li>
+                <li>Create FSN × ClubHouse recommendations</li>
+                <li>Check deracking within window (configurable days)</li>
+                <li>Calculate: max(MDQ, SS + DRR×DOH)</li>
+                <li>Allocate warehouse inventory (one-shot proportional)</li>
+                <li><strong>Auto-create STNs</strong> (no manual upload)</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== GENERATED STNs DASHBOARD ========== -->
+    <div id="screen-stn-dashboard" class="screen">
+      <div class="card mb-24">
+        <div class="card-header"><h3>Generated STNs</h3></div>
+        <div class="card-body">
+          <div class="filter-bar">
+            <label class="text-sm text-muted">Filters:</label>
+            <input type="date" class="form-control" value="2026-03-16" style="width:140px;">
+            <select class="form-control" id="stn-filter-source" style="width:180px;"><option>All Source Warehouses</option></select>
+            <select class="form-control" id="stn-filter-dest" style="width:180px;"><option>All Target Warehouses</option></select>
+            <button class="btn btn-primary btn-sm">Apply</button>
+          </div>
+          <div id="allocation-failures-section" class="mb-16" style="display:none;"></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th></th><th>STN ID</th><th>STN Name</th><th>Source</th><th>Destination</th><th>Total Units</th><th>Status</th><th>Actions</th></tr>
+              </thead>
+              <tbody id="tbody-stn-dashboard">
+                <tr>
+                  <td class="font-mono">STN-10892</td>
+                  <td>Auto_STN_WH001_CH001_BREAD_1603</td>
+                  <td>FRHBLRHSK02</td>
+                  <td>FCHBLRHSAF01</td>
+                  <td class="text-right">156</td>
+                  <td><span class="badge badge-active">Created</span></td>
+                  <td><button class="btn btn-danger btn-sm" onclick="showCancelModal()">Cancel STN</button></td>
+                </tr>
+                <tr>
+                  <td class="font-mono">STN-10891</td>
+                  <td>Auto_STN_WH001_CH002_1603</td>
+                  <td>FRHBLRHSK02</td>
+                  <td>FCHBLRBEN01</td>
+                  <td class="text-right">89</td>
+                  <td><span class="badge badge-pending">Picking</span></td>
+                  <td><span class="text-muted text-sm">—</span></td>
+                </tr>
+                <tr>
+                  <td class="font-mono">STN-10890</td>
+                  <td>Auto_STN_WH001_CH003_1603</td>
+                  <td>FRHBLRHSK02</td>
+                  <td>FCHBLRDOD01</td>
+                  <td class="text-right">201</td>
+                  <td><span class="badge badge-approved">Completed</span></td>
+                  <td><span class="text-muted text-sm">—</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== STN VISIBILITY DASHBOARD ========== -->
+    <div id="screen-visibility" class="screen">
+      <div class="card mb-24">
+        <div class="card-header">
+          <h3>Inventory Shortfall Dashboard</h3>
+        </div>
+        <div class="card-body">
+          <div class="filter-bar mb-16">
+            <label class="text-sm text-muted">Date:</label>
+            <input type="date" class="form-control" id="visibility-date-from" value="2026-03-14" style="width:140px;">
+            <label class="text-sm text-muted">To:</label>
+            <input type="date" class="form-control" id="visibility-date-to" value="2026-03-18" style="width:140px;">
+            <label class="text-sm text-muted">STN ID:</label>
+            <select class="form-control" id="visibility-stn-filter" style="width:180px;"></select>
+            <label class="text-sm text-muted">Source Warehouse:</label>
+            <select class="form-control" id="visibility-source-wh" style="width:200px;"></select>
+            <button class="btn btn-primary btn-sm" onclick="applyVisibilityFilters()">Apply</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Date</th><th>STN ID</th><th>Source Warehouse</th><th>Category</th><th>Sub Category</th><th>Super Category</th><th>PID</th><th>SKU</th><th>SKU Name</th><th>Qty Required</th><th>Qty Transferred</th><th>Reason</th></tr>
+              </thead>
+              <tbody id="tbody-visibility"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DERACKING DASHBOARD ========== -->
+    <div id="screen-deracking" class="screen">
+      <div class="card mb-24">
+        <div class="card-header flex-between">
+          <h3>Deracking Dashboard — 7-Day View</h3>
+          <button class="btn btn-primary btn-sm" id="deracking-download-csv">Download CSV</button>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info mb-16">
+            SKUs to be de-racked at date level, per warehouse. Category × Sub Category × Super Category × PID × SKU × SKU Name × Warehouse × units per date. Download CSV for any date or date range.
+          </div>
+          <div class="filter-bar">
+            <label class="text-sm text-muted">Warehouse:</label>
+            <select class="form-control" id="deracking-warehouse-filter" style="width:200px;"></select>
+            <label class="text-sm text-muted">Date:</label>
+            <input type="date" class="form-control" id="deracking-date-from" value="2026-03-16" style="width:140px;">
+            <label class="text-sm text-muted">To:</label>
+            <input type="date" class="form-control" id="deracking-date-to" value="2026-03-22" style="width:140px;">
+            <button class="btn btn-primary btn-sm" onclick="applyDerackingFilters()">Apply</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr id="deracking-thead"><th>Category</th><th>Sub Category</th><th>Super Category</th><th>PID</th><th>SKU</th><th>SKU Name</th><th>Warehouse</th><th>17-Mar</th><th>18-Mar</th><th>19-Mar</th><th>20-Mar</th><th>21-Mar</th><th>22-Mar</th><th>23-Mar</th></tr>
+              </thead>
+              <tbody id="tbody-deracking">
+                <tr>
+                  <td>FMCG</td><td>Snacks</td><td>Chips</td><td>PID001</td><td class="font-mono">FSN001</td><td>Lay's Classic 50g</td><td>—</td><td class="text-center">✓</td><td>—</td><td>—</td><td>—</td><td>...</td>
+                </tr>
+                <tr>
+                  <td>FMCG</td><td>Beverages</td><td>Cold Drinks</td><td>PID002</td><td class="font-mono">FSN002</td><td>Coca Cola 300ml</td><td>—</td><td>—</td><td class="text-center">✓</td><td>—</td><td>—</td><td>...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========== STN TIME CONFIGURATION ========== -->
+    <div id="screen-time-config" class="screen">
+      <div class="card mb-24">
+        <div class="card-header"><h3>STN Auto-Generation Time Configuration</h3></div>
+        <div class="card-body">
+          <div class="alert alert-info mb-16">
+            Central team can configure time for STN creation at zone classification level. Default for each zone: 3:00 PM.
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>City</th><th>Zone Type</th><th>Auto-Gen Time</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Bangalore</td>
+                  <td>BREAD</td>
+                  <td><input type="time" class="form-control" value="15:00" style="width:120px;"></td>
+                  <td><button class="btn btn-primary btn-sm">Save</button></td>
+                </tr>
+                <tr>
+                  <td>Bangalore</td>
+                  <td>EGGS</td>
+                  <td><input type="time" class="form-control" value="14:00" style="width:120px;"></td>
+                  <td><button class="btn btn-primary btn-sm">Save</button></td>
+                </tr>
+                <tr>
+                  <td>Bangalore</td>
+                  <td>FOOD</td>
+                  <td><input type="time" class="form-control" value="15:00" style="width:120px;"></td>
+                  <td><button class="btn btn-primary btn-sm">Save</button></td>
+                </tr>
+                <tr>
+                  <td>—</td>
+                  <td>Default</td>
+                  <td><input type="time" class="form-control" value="15:00" style="width:120px;"></td>
+                  <td><button class="btn btn-primary btn-sm">Save</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel STN Modal -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Cancel STN</h3>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cancelModal').classList.remove('show')">×</button>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to cancel <strong>Auto_STN_WH001_CH001_BREAD_1603</strong>?</p>
+      <p class="text-muted text-sm mt-16">All allocated quantity will be automatically de-allocated. This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="document.getElementById('cancelModal').classList.remove('show')">Keep STN</button>
+      <button class="btn btn-danger" onclick="document.getElementById('cancelModal').classList.remove('show')">Cancel STN & De-allocate</button>
+    </div>
+  </div>
+</div>
+
+<script src="auto_stn_data.js"></script>
+<script>
+const titles = {
+  dashboard: 'Dashboard',
+  config: 'FSN Configuration',
+  generate: 'Generate & Create STNs',
+  'stn-dashboard': 'Generated STNs',
+  visibility: 'Inventory Shortfall Dashboard',
+  deracking: 'Deracking Dashboard',
+  'time-config': 'STN Time Configuration'
+};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  const screen = document.getElementById('screen-' + id);
+  const link = document.querySelector('[data-screen="' + id + '"]');
+  if (screen) screen.classList.add('active');
+  if (link) link.classList.add('active');
+  const crumb = document.getElementById('breadcrumb-current');
+  if (crumb) crumb.textContent = titles[id] || id;
+}
+
+document.querySelectorAll('.sidebar-nav a[data-screen], .breadcrumb a[data-screen]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const screen = a.getAttribute('data-screen');
+    if (screen) showScreen(screen);
+  });
+});
+
+function showCancelModal() {
+  document.getElementById('cancelModal').classList.add('show');
+}
+
+function initAutoStnData() {
+  if (typeof AUTO_STN_DATA === 'undefined') return;
+  const D = AUTO_STN_DATA;
+
+  // Stats
+  const statMissing = document.getElementById('stat-missing-config');
+  const statStn = document.getElementById('stat-stn-today');
+  if (statMissing) statMissing.textContent = (D.missingClassificationCount ?? 0) + (D.missingConfigCount ?? 0) || (D.missingClassification?.length ?? 0) + (D.missingConfig?.length ?? 0);
+  if (statStn) statStn.textContent = D.stnTodayCount ?? D.stns?.length ?? 0;
+
+  // Warehouse dropdowns
+  const opts = (list, allLabel) => '<option value="">' + allLabel + '</option>' + (list || []).map(w => '<option value="' + (w.code || w) + '">' + (w.code || w) + (w.name ? ' (' + w.name + ')' : '') + '</option>').join('');
+  const srcSelect = document.getElementById('stn-filter-source');
+  const destSelect = document.getElementById('stn-filter-dest');
+  const genSelect = document.getElementById('generate-source-wh');
+  if (srcSelect) srcSelect.innerHTML = opts(D.warehouses, 'All Source Warehouses');
+  if (destSelect) destSelect.innerHTML = opts(D.warehouses, 'All Target Warehouses');
+  if (genSelect) genSelect.innerHTML = opts(D.warehouses, 'Select REPLENISHMENT_HUB...');
+  const genDestSelect = document.getElementById('generate-dest-wh');
+  if (genDestSelect) genDestSelect.innerHTML = opts(D.warehouses, 'All Destinations');
+
+  const configCitySelect = document.getElementById('config-city-filter');
+  if (configCitySelect && D.cities) {
+    const cityOpts = (D.cities || []).map(c => '<option value="' + c + '">' + c + '</option>').join('');
+    configCitySelect.innerHTML = '<option value="">All Cities</option>' + cityOpts;
+  }
+  const configWhSelect = document.getElementById('config-warehouse-filter');
+  if (configWhSelect) {
+    configWhSelect.innerHTML = opts(D.warehouses, 'All Warehouses');
+    configWhSelect.value = 'FRHBLRHSK02';
+  }
+
+  const derackingWhSelect = document.getElementById('deracking-warehouse-filter');
+  if (derackingWhSelect) {
+    derackingWhSelect.innerHTML = opts(D.warehouses, 'All Warehouses');
+  }
+
+  // Inventory Shortfall filters
+  const visStnSelect = document.getElementById('visibility-stn-filter');
+  const visSrcWhSelect = document.getElementById('visibility-source-wh');
+  if (visStnSelect && D.stnVisibility) {
+    const stnIds = [...new Set((D.stnVisibility || []).map(v => v.stnId).filter(Boolean))];
+    visStnSelect.innerHTML = '<option value="">All STNs</option>' + stnIds.map(id => '<option value="' + id + '">' + id + '</option>').join('');
+  }
+  if (visSrcWhSelect) {
+    visSrcWhSelect.innerHTML = opts(D.warehouses, 'All Source Warehouses');
+  }
+
+  renderMissingClassification();
+  renderMissingConfig();
+
+  // STN dashboard table (with expandable SKU details)
+  renderStnDashboard();
+
+  // Allocation failures section (Download button only, yellow)
+  const failSection = document.getElementById('allocation-failures-section');
+  if (failSection && D.allocationFailures && D.allocationFailures.length > 0) {
+    failSection.style.display = 'block';
+    failSection.innerHTML = '<button class="btn btn-warning btn-sm" id="allocation-failures-download">Download Allocation Failure</button>';
+  }
+
+  // Inventory Shortfall table (date-level, filtered)
+  const tVis = document.getElementById('tbody-visibility');
+  if (tVis && D.stnVisibility) {
+    const list = getFilteredVisibility();
+    const row = v => '<tr class="row-highlight-missing"><td>' + (v.date||'') + '</td><td class="font-mono">' + (v.stnId||'') + '</td><td class="font-mono">' + (v.sourceWarehouse||'') + '</td><td>' + (v.category||'') + '</td><td>' + (v.subCategory||'') + '</td><td>' + (v.superCategory||'') + '</td><td>' + (v.pid||'') + '</td><td class="font-mono">' + (v.skuId||'') + '</td><td>' + (v.skuName||'').substring(0,50) + '</td><td class="text-right">' + (v.qtyRequired||0) + '</td><td class="text-right">' + (v.qtyTransferred||0) + '</td><td><span class="badge badge-expired">' + (v.reason||'Insufficient Inventory') + '</span></td></tr>';
+    tVis.innerHTML = list.map(row).join('');
+  }
+  const statVis = document.getElementById('stat-visibility');
+  if (statVis) statVis.textContent = (D.stnVisibilityCount || (D.stnVisibility && D.stnVisibility.length) || 0);
+
+  // Deracking table (7-day view, with warehouse)
+  const t3 = document.getElementById('tbody-deracking');
+  if (t3 && D.deracking) {
+    const list = getFilteredDeracking();
+    const dates = D.derackingDates || ['17-Mar','18-Mar','19-Mar','20-Mar','21-Mar','22-Mar','23-Mar'];
+    t3.innerHTML = list.slice(0, 50).map(r => {
+      const cells = dates.map(d => {
+        const u = r.dates && r.dates[d];
+        return (u && Number(u) > 0) ? '<td class="text-center">' + u + '</td>' : '<td class="text-center">—</td>';
+      }).join('');
+      return '<tr><td>' + (r.category||'') + '</td><td>' + (r.subCategory||'') + '</td><td>' + (r.superCategory||'') + '</td><td>' + (r.pid||'') + '</td><td class="font-mono">' + r.skuId + '</td><td>' + (r.name||'').substring(0,40) + '</td><td class="font-mono">' + (r.warehouse||'') + '</td>' + cells + '</tr>';
+    }).join('');
+  }
+
+  document.getElementById('config-download-classification')?.addEventListener('click', downloadMissingClassificationCSV);
+  document.getElementById('config-download-config')?.addEventListener('click', downloadMissingConfigCSV);
+  document.getElementById('config-apply-classification')?.addEventListener('click', () => { renderMissingClassification(); });
+  document.getElementById('config-apply-config')?.addEventListener('click', () => { renderMissingConfig(); });
+  document.querySelectorAll('.config-tab').forEach(t => t.addEventListener('click', function() { switchConfigTab(this.dataset.configTab); }));
+  document.getElementById('deracking-download-csv')?.addEventListener('click', downloadDerackingCSV);
+  document.getElementById('allocation-failures-download')?.addEventListener('click', downloadAllocationFailuresCSV);
+}
+
+function switchConfigTab(tab) {
+  if (!tab) return;
+  document.querySelectorAll('.tab[data-config-tab]').forEach(t => t.classList.toggle('active', t.dataset.configTab === tab));
+  const panes = document.querySelectorAll('.config-tab-pane');
+  panes.forEach(p => { p.style.display = (p.id === 'config-tab-' + tab) ? '' : 'none'; });
+}
+
+function switchConfigTab(tabName) {
+  document.querySelectorAll('.tab[data-config-tab]').forEach(t => {
+    t.classList.toggle('active', t.dataset.configTab === tabName);
+  });
+  document.querySelectorAll('.config-tab-pane').forEach(p => {
+    p.style.display = (p.id === 'config-tab-' + tabName) ? 'block' : 'none';
+  });
+}
+
+function getFilteredDeracking() {
+  if (typeof AUTO_STN_DATA === 'undefined') return [];
+  const wh = document.getElementById('deracking-warehouse-filter')?.value || '';
+  let list = AUTO_STN_DATA.deracking || [];
+  if (wh) list = list.filter(r => r.warehouse === wh);
+  return list;
+}
+
+function getFilteredVisibility() {
+  if (typeof AUTO_STN_DATA === 'undefined') return [];
+  const fromVal = document.getElementById('visibility-date-from')?.value || '';
+  const toVal = document.getElementById('visibility-date-to')?.value || '';
+  const stnId = document.getElementById('visibility-stn-filter')?.value || '';
+  const srcWh = document.getElementById('visibility-source-wh')?.value || '';
+  let list = AUTO_STN_DATA.stnVisibility || [];
+  if (fromVal) list = list.filter(v => (v.date || '') >= fromVal);
+  if (toVal) list = list.filter(v => (v.date || '') <= toVal);
+  if (stnId) list = list.filter(v => v.stnId === stnId);
+  if (srcWh) list = list.filter(v => v.sourceWarehouse === srcWh);
+  return list;
+}
+
+function getFilteredMissingClassification() {
+  if (typeof AUTO_STN_DATA === 'undefined') return [];
+  const city = document.getElementById('config-city-filter')?.value || '';
+  let list = AUTO_STN_DATA.missingClassification || [];
+  if (city) list = list.filter(m => m.city === city);
+  return list;
+}
+
+function renderMissingClassification() {
+  const list = getFilteredMissingClassification();
+  const t = document.getElementById('tbody-missing-classification');
+  if (t) t.innerHTML = list.map(m => '<tr class="row-highlight-missing"><td class="font-mono">' + m.skuId + '</td><td>' + (m.city||'') + '</td></tr>').join('');
+}
+
+function downloadMissingClassificationCSV() {
+  const list = getFilteredMissingClassification();
+  const header = 'FSN_ID,City';
+  const rows = list.map(m => [m.skuId, m.city||''].join(','));
+  downloadCSV(header + '\n' + rows.join('\n'), 'fsns_missing_classification_' + new Date().toISOString().slice(0,10) + '.csv');
+}
+
+function getFilteredMissingConfig() {
+  if (typeof AUTO_STN_DATA === 'undefined') return [];
+  const wh = document.getElementById('config-warehouse-filter')?.value || '';
+  let list = AUTO_STN_DATA.missingConfig || [];
+  if (wh) list = list.filter(m => m.warehouse === wh);
+  return list;
+}
+
+function renderMissingConfig() {
+  const list = getFilteredMissingConfig();
+  const t1 = document.getElementById('tbody-missing-config');
+  if (t1) t1.innerHTML = list.map(m => '<tr class="row-highlight-missing"><td class="font-mono">' + m.skuId + '</td><td>' + (m.warehouse||'') + '</td></tr>').join('');
+}
+
+function downloadMissingConfigCSV() {
+  const list = getFilteredMissingConfig();
+  const header = 'FSN_ID,Warehouse_ID';
+  const rows = list.map(m => [m.skuId, m.warehouse||''].join(','));
+  downloadCSV(header + '\n' + rows.join('\n'), 'fsns_missing_configuration_' + new Date().toISOString().slice(0,10) + '.csv');
+}
+
+function renderStnDashboard() {
+  const D = AUTO_STN_DATA;
+  if (!D || !D.stns) return;
+  const t2 = document.getElementById('tbody-stn-dashboard');
+  if (!t2) return;
+  const badge = s => ({ Created: 'badge-active', Picking: 'badge-pending', Completed: 'badge-approved' }[s] || 'badge-draft');
+  const action = s => s === 'Created' ? '<button class="btn btn-danger btn-sm" onclick="showCancelModal()">Cancel STN</button>' : '<span class="text-muted text-sm">—</span>';
+  let html = '';
+  D.stns.forEach((s, idx) => {
+    const items = s.items || [];
+    const itemsRows = items.length ? '<tr class="stn-items-row" id="stn-items-' + idx + '" style="display:none;"><td colspan="8"><div class="p-12" style="padding:12px 24px;background:var(--gray-50);"><table class="text-sm"><thead><tr><th>SKU</th><th>SKU Title</th><th>Warehouse</th><th>Required Qty</th></tr></thead><tbody>' + items.map(it => '<tr><td class="font-mono">' + it.skuId + '</td><td>' + (it.skuName||'').substring(0,50) + '</td><td>' + it.warehouse + '</td><td class="text-right">' + it.requiredQty + '</td></tr>').join('') + '</tbody></table></div></td></tr>' : '';
+    html += '<tr data-stn-idx="' + idx + '"><td><button class="btn btn-ghost btn-sm stn-expand-btn" onclick="toggleStnItems(' + idx + ')" title="View SKU details">▼</button></td><td class="font-mono">' + s.id + '</td><td>' + s.name + '</td><td>' + s.source + '</td><td>' + s.dest + '</td><td class="text-right">' + s.units + '</td><td><span class="badge ' + badge(s.status) + '">' + s.status + '</span></td><td>' + action(s.status) + '</td></tr>' + itemsRows;
+  });
+  t2.innerHTML = html;
+}
+
+function toggleStnItems(idx) {
+  const row = document.getElementById('stn-items-' + idx);
+  const btn = document.querySelector('[data-stn-idx="' + idx + '"] .stn-expand-btn');
+  if (row) { row.style.display = row.style.display === 'none' ? 'table-row' : 'none'; if (btn) btn.textContent = row.style.display === 'none' ? '▼' : '▲'; }
+}
+
+function downloadAllocationFailuresCSV() {
+  const D = AUTO_STN_DATA;
+  if (!D || !D.allocationFailures) return;
+  const stnLookup = {};
+  (D.stns || []).forEach(s => { stnLookup[s.id] = s; });
+  const header = 'STN_ID,SKU,Warehouse_ID,Destination_ID,Allocation_failed_qty';
+  const rows = [];
+  (D.allocationFailures || []).forEach(f => {
+    const stn = stnLookup[f.stnId] || {};
+    (f.failedItems || []).forEach(it => {
+      rows.push([f.stnId, it.skuId, stn.source || '', stn.dest || '', (it.allocatedQty ?? 0)].join(','));
+    });
+  });
+  downloadCSV(header + '\n' + rows.join('\n'), 'allocation_failures_' + new Date().toISOString().slice(0,10) + '.csv');
+}
+
+function downloadDerackingCSV() {
+  const D = AUTO_STN_DATA;
+  if (!D || !D.deracking) return;
+  const list = getFilteredDeracking();
+  const dates = D.derackingDates || ['17-Mar','18-Mar','19-Mar','20-Mar','21-Mar','22-Mar','23-Mar'];
+  const fromInput = document.getElementById('deracking-date-from');
+  const toInput = document.getElementById('deracking-date-to');
+  const header = 'SKU_ID,SKU_Name,Warehouse,Category,Sub_Category,Super_Category,PID,' + dates.join(',');
+  const rows = list.map(r => {
+    const dateVals = dates.map(d => {
+      const u = r.dates && r.dates[d];
+      return (u && Number(u) > 0) ? String(u) : '';
+    }).join(',');
+    return [r.skuId, '"' + (r.name||'').replace(/"/g,'""') + '"', r.warehouse||'', r.category, r.subCategory, r.superCategory, r.pid, dateVals].join(',');
+  });
+  const fn = 'deracking' + (fromInput?.value ? '_' + fromInput.value : '') + (toInput?.value && toInput.value !== fromInput?.value ? '_to_' + toInput.value : '') + '.csv';
+  downloadCSV(header + '\n' + rows.join('\n'), fn);
+}
+
+function downloadCSV(content, filename) {
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+
+function applyDerackingFilters() { initAutoStnData(); }
+
+function applyVisibilityFilters() {
+  const tVis = document.getElementById('tbody-visibility');
+  if (tVis && typeof AUTO_STN_DATA !== 'undefined') {
+    const list = getFilteredVisibility();
+    const row = v => '<tr class="row-highlight-missing"><td>' + (v.date||'') + '</td><td class="font-mono">' + (v.stnId||'') + '</td><td class="font-mono">' + (v.sourceWarehouse||'') + '</td><td>' + (v.category||'') + '</td><td>' + (v.subCategory||'') + '</td><td>' + (v.superCategory||'') + '</td><td>' + (v.pid||'') + '</td><td class="font-mono">' + (v.skuId||'') + '</td><td>' + (v.skuName||'').substring(0,50) + '</td><td class="text-right">' + (v.qtyRequired||0) + '</td><td class="text-right">' + (v.qtyTransferred||0) + '</td><td><span class="badge badge-expired">' + (v.reason||'Insufficient Inventory') + '</span></td></tr>';
+    tVis.innerHTML = list.map(row).join('');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', initAutoStnData);
+</script>
+</body>
+</html>
