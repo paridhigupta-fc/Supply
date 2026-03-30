@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firstclub Finance - Procurement, Invoice Reconciliation & Payment System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #1a202c;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-role {
+            padding: 0.25rem 0.75rem;
+            background: #edf2f7;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+
+        .tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 0 2rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+            position: relative;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .tab:hover {
+            color: #2d3748;
+            background: #f7fafc;
+        }
+
+        .tab.active {
+            color: #5a67d8;
+            border-bottom-color: #5a67d8;
+        }
+
+        .tab .dot-indicator {
+            width: 8px;
+            height: 8px;
+            background: #f56565;
+            border-radius: 50%;
+            position: absolute;
+            top: 0.75rem;
+            right: 0.5rem;
+        }
+
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .metric-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid #5a67d8;
+        }
+
+        .metric-card h3 {
+            font-size: 0.875rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .section {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert.red {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+        }
+
+        .alert.amber {
+            background: #fffbeb;
+            border: 1px solid #fbd38d;
+            color: #c05621;
+        }
+
+        .alert.blue {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            color: #2c5282;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f7fafc;
+        }
+
+        th {
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+            cursor: pointer;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.green {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .badge.red {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .badge.amber {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .badge.blue {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .badge.purple {
+            background: #e9d8fd;
+            color: #44337a;
+        }
+
+        .button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .button.primary {
+            background: #5a67d8;
+            color: white;
+        }
+
+        .button.primary:hover {
+            background: #4c51bf;
+        }
+
+        .button.success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .button.success:hover {
+            background: #38a169;
+        }
+
+        .button.purple {
+            background: #805ad5;
+            color: white;
+        }
+
+        .button.purple:hover {
+            background: #6b46c1;
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            font-size: 0.75rem;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #cbd5e0;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #5a67d8;
+            box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 0.5rem;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: #fff;
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            color: #2d3748;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #718096;
+            background: none;
+            border: none;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+        }
+
+        .close-btn:hover {
+            background: #f7fafc;
+            color: #2d3748;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #718096;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            font-size: 0.875rem;
+            color: #2d3748;
+            font-weight: 500;
+        }
+
+        .monospace {
+            font-family: 'Courier New', monospace;
+        }
+
+        .text-red {
+            color: #e53e3e;
+        }
+
+        .text-green {
+            color: #38a169;
+        }
+
+        .text-amber {
+            color: #d69e2e;
+        }
+
+        .invoice-detail-panel {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .summary-card {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            text-align: center;
+        }
+
+        .summary-card .label {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card .amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .comparison-table tr.matched {
+            background: transparent;
+        }
+
+        .comparison-table tr.discrepancy {
+            background: #fff5f5;
+        }
+
+        .comparison-table tr.resolved {
+            background: #f0fff4;
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .action-cell input {
+            width: 80px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 1.5rem 0;
+        }
+
+        .three-way-preview {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .preview-card {
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.375rem;
+        }
+
+        .preview-card .title {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .preview-card .value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-card .indicator {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            display: inline-block;
+        }
+
+        .preview-card .indicator.pass {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .preview-card .indicator.fail {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .override-log {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f7fafc;
+            border-radius: 0.375rem;
+        }
+
+        .override-log h4 {
+            font-size: 0.875rem;
+            color: #4a5568;
+            margin-bottom: 0.75rem;
+        }
+
+        .log-entry {
+            padding: 0.75rem;
+            background: #fff;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #718096;
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.3;
+        }
+
+        .split-view {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1.5rem;
+        }
+
+        .list-panel {
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .detail-panel {
+            background: #fff;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .list-item {
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .list-item:hover {
+            border-color: #5a67d8;
+            box-shadow: 0 2px 4px rgba(90, 103, 216, 0.1);
+        }
+
+        .list-item.selected {
+            border-color: #5a67d8;
+            background: #edf2f7;
+        }
+
+        .list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .list-item-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .list-item-details {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+
+        @media (max-width: 768px) {
+            .split-view {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .three-way-preview {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                padding: 0 1rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Firstclub Finance</h1>
+        <div class="user-info">
+            <span class="user-role">Finance Admin</span>
+            <span>John Doe</span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" data-tab="overview">Overview</div>
+        <div class="tab" data-tab="procurement">Procurement</div>
+        <div class="tab" data-tab="invoice-match">
+            Invoice match
+            <span class="dot-indicator"></span>
+        </div>
+        <div class="tab" data-tab="3way-match">
+            3-way match
+            <span class="dot-indicator"></span>
+        </div>
+        <div class="tab" data-tab="payments">Payments</div>
+        <div class="tab" data-tab="vendors">Vendors</div>
+        <div class="tab" data-tab="exceptions">Exceptions</div>
+        <div class="tab" data-tab="pazy-log">Pazy log</div>
+    </div>
+
+    <div class="content">
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="metric-cards">
+                <div class="metric-card">
+                    <h3>Active POs</h3>
+                    <div class="value">24</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Invoice match pending</h3>
+                    <div class="value">8</div>
+                </div>
+                <div class="metric-card">
+                    <h3>3-way match pending</h3>
+                    <div class="value">5</div>
+                </div>
+                <div class="metric-card">
+                    <h3>EOD batch queued</h3>
+                    <div class="value">₹342,500</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Recent Pazy Log</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Bundle ID</th>
+                            <th>Event</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-01-30 09:15:23</td>
+                            <td class="monospace">BDL-20250130-001</td>
+                            <td>Invoice submitted to Pazy</td>
+                            <td><span class="badge green">200</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-30 08:42:11</td>
+                            <td class="monospace">BDL-20250129-048</td>
+                            <td>Payment status updated</td>
+                            <td><span class="badge green">200</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-29 23:59:12</td>
+                            <td class="monospace">BDL-20250129-047</td>
+                            <td>EOD batch executed</td>
+                            <td><span class="badge green">200</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-29 23:58:45</td>
+                            <td class="monospace">BDL-20250129-046</td>
+                            <td>Invoice submitted to Pazy</td>
+                            <td><span class="badge green">200</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-29 18:22:33</td>
+                            <td class="monospace">BDL-20250129-045</td>
+                            <td>Vendor sync failed</td>
+                            <td><span class="badge red">400</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Alerts</div>
+                <div class="alert red">
+                    <strong>⚠</strong>
+                    <div>
+                        <strong>PO-2024-0891 has expired</strong> - Finance override required for any invoices
+                    </div>
+                </div>
+                <div class="alert amber">
+                    <strong>⚠</strong>
+                    <div>
+                        <strong>Vendor "ABC Supplies Ltd" not in ACTIVE state</strong> - Payments blocked until resolved
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Procurement Tab -->
+        <div class="tab-content" id="procurement">
+            <div class="section">
+                <div class="section-header">Purchase Orders</div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>Search PO Number</label>
+                        <input type="text" placeholder="Enter PO number..." id="poSearch">
+                    </div>
+                    <div class="filter-group">
+                        <label>Vendor</label>
+                        <select id="poVendorFilter">
+                            <option value="">All Vendors</option>
+                            <option value="vendor1">XYZ Industries</option>
+                            <option value="vendor2">ABC Supplies Ltd</option>
+                            <option value="vendor3">Global Trade Co</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="poStatusFilter">
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="expired">Expired</option>
+                        </select>
+                    </div>
+                    <button class="button primary" onclick="clearPoFilters()">Clear</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Vendor</th>
+                            <th>Issued</th>
+                            <th>Expiry</th>
+                            <th>Total</th>
+                            <th>Consumed</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="poTableBody">
+                        <tr onclick="showPoDetail('PO-2024-1234')">
+                            <td class="monospace">PO-2024-1234</td>
+                            <td>XYZ Industries</td>
+                            <td>2024-11-15</td>
+                            <td>2025-05-15</td>
+                            <td>₹450,000</td>
+                            <td class="text-amber">₹378,000</td>
+                            <td>₹72,000</td>
+                            <td><span class="badge green">Active</span></td>
+                        </tr>
+                        <tr onclick="showPoDetail('PO-2024-0891')">
+                            <td class="monospace">PO-2024-0891</td>
+                            <td>ABC Supplies Ltd</td>
+                            <td>2024-08-22</td>
+                            <td class="text-red">2025-01-22</td>
+                            <td>₹280,000</td>
+                            <td>₹245,000</td>
+                            <td>₹35,000</td>
+                            <td><span class="badge red">Expired</span></td>
+                        </tr>
+                        <tr onclick="showPoDetail('PO-2024-1567')">
+                            <td class="monospace">PO-2024-1567</td>
+                            <td>Global Trade Co</td>
+                            <td>2024-12-03</td>
+                            <td>2025-06-03</td>
+                            <td>₹625,000</td>
+                            <td>₹156,250</td>
+                            <td>₹468,750</td>
+                            <td><span class="badge green">Active</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Goods Receipt Notes (GRNs)</div>
+                <div class="filters">
+                    <div class="filter-group">
+                        <label>PO</label>
+                        <select id="grnPoFilter">
+                            <option value="">All POs</option>
+                            <option value="po1">PO-2024-1234</option>
+                            <option value="po2">PO-2024-0891</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select id="grnStatusFilter">
+                            <option value="">All</option>
+                            <option value="received">Received</option>
+                            <option value="partial">Partial</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date From</label>
+                        <input type="date" id="grnDateFrom">
+                    </div>
+                    <div class="filter-group">
+                        <label>Date To</label>
+                        <input type="date" id="grnDateTo">
+                    </div>
+                    <button class="button primary" onclick="clearGrnFilters()">Clear</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>GRN Number</th>
+                            <th>PO</th>
+                            <th>Vendor</th>
+                            <th>Received Date</th>
+                            <th>Net Value</th>
+                            <th>RTVs</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="showGrnDetail('GRN-2025-0045')">
+                            <td class="monospace">GRN-2025-0045</td>
+                            <td>PO-2024-1234</td>
+                            <td>XYZ Industries</td>
+                            <td>2025-01-28</td>
+                            <td>₹125,000 <span class="text-amber">(₹5,000 RTV)</span></td>
+                            <td><span class="badge amber">2</span></td>
+                            <td><span class="badge green">Received</span></td>
+                        </tr>
+                        <tr onclick="showGrnDetail('GRN-2025-0044')">
+                            <td class="monospace">GRN-2025-0044</td>
+                            <td>PO-2024-1567</td>
+                            <td>Global Trade Co</td>
+                            <td>2025-01-25</td>
+                            <td>₹156,250</td>
+                            <td>—</td>
+                            <td><span class="badge green">Received</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Invoice Match Tab -->
+        <div class="tab-content" id="invoice-match">
+            <div class="split-view">
+                <div class="list-panel">
+                    <h3 style="margin-bottom: 1rem;">Invoices</h3>
+                    <div class="list-item selected" onclick="selectInvoice('INV-2025-001')">
+                        <div class="list-item-header">
+                            <span class="list-item-title monospace">INV-2025-001</span>
+                            <span class="badge red">Discrepancy</span>
+                        </div>
+                        <div class="list-item-details">
+                            <div>Vendor: XYZ Industries</div>
+                            <div>Pazy: ₹125,000 | Internal: ₹120,000</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectInvoice('INV-2025-002')">
+                        <div class="list-item-header">
+                            <span class="list-item-title monospace">INV-2025-002</span>
+                            <span class="badge green">Matched</span>
+                        </div>
+                        <div class="list-item-details">
+                            <div>Vendor: Global Trade Co</div>
+                            <div>Pazy: ₹156,250 | Internal: ₹156,250</div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectInvoice('INV-2025-003')">
+                        <div class="list-item-header">
+                            <span class="list-item-title monospace">INV-2025-003</span>
+                            <span class="badge blue">Passed →</span>
+                        </div>
+                        <div class="list-item-details">
+                            <div>Vendor: ABC Supplies Ltd</div>
+                            <div>Final: ₹89,500</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="invoiceDetailPanel">
+                    <div class="modal-header" style="padding: 0 0 1rem 0; position: relative;">
+                        <div>
+                            <h2>INV-2025-001 - XYZ Industries</h2>
+                        </div>
+                        <span class="badge red">Discrepancy</span>
+                    </div>
+
+                    <div class="section-header">Invoice Match: Pazy vs Internal</div>
+                    
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="label">Pazy Total</div>
+                            <div class="amount">₹125,000</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">Internal Total</div>
+                            <div class="amount">₹120,000</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">Final Total*</div>
+                            <div class="amount">₹122,500</div>
+                        </div>
+                    </div>
+
+                    <div class="alert blue">
+                        <span>ℹ️</span>
+                        Calculated from current values — finalized after all rows resolved
+                    </div>
+
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>SKU</th>
+                                <th>Pazy Qty</th>
+                                <th>Pazy Rate</th>
+                                <th>Int. Qty</th>
+                                <th>Int. Rate</th>
+                                <th>Final Qty</th>
+                                <th>Final Rate</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="discrepancy">
+                                <td><strong>Widget A</strong></td>
+                                <td class="text-red">100</td>
+                                <td>₹500</td>
+                                <td class="text-amber">95</td>
+                                <td>₹500</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>
+                                    <div class="action-cell">
+                                        <input type="number" value="100" id="qty-widget-a">
+                                        <button class="button success" onclick="approveRow('widget-a')">Approve</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="resolved">
+                                <td><strong>Widget B</strong></td>
+                                <td class="text-red">50</td>
+                                <td class="text-red">₹1,000</td>
+                                <td class="text-amber">50</td>
+                                <td class="text-amber">₹950</td>
+                                <td class="text-green">50</td>
+                                <td class="text-green">₹950</td>
+                                <td><span class="badge green">Resolved</span></td>
+                            </tr>
+                            <tr class="matched">
+                                <td><strong>Widget C</strong></td>
+                                <td>25</td>
+                                <td>₹800</td>
+                                <td>25</td>
+                                <td>₹800</td>
+                                <td class="text-green">25</td>
+                                <td class="text-green">₹800</td>
+                                <td><span class="badge green">Matched</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="override-log">
+                        <h4>Override Log</h4>
+                        <div class="log-entry">
+                            <strong>Widget B:</strong> Rate <span class="text-red">₹1,000</span> → <span class="text-green">₹950</span> | Resolved by John Doe | 2025-01-30 10:15:23
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="section-header">3-way Match Preview</div>
+                    
+                    <div class="three-way-preview">
+                        <div class="preview-card">
+                            <div class="title">PO Available</div>
+                            <div class="value">₹72,000</div>
+                            <span class="indicator fail">Exceeds limit</span>
+                        </div>
+                        <div class="preview-card">
+                            <div class="title">GRN Net of RTV</div>
+                            <div class="value">₹120,000 <span class="text-amber">(₹5,000 RTV)</span></div>
+                            <span class="indicator pass">Within limit</span>
+                        </div>
+                        <div class="preview-card">
+                            <div class="title">Invoice Total</div>
+                            <div class="value">₹122,500</div>
+                        </div>
+                    </div>
+
+                    <button class="button primary" disabled id="passTo3WayBtn">
+                        Resolve all discrepancies first
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3-Way Match Tab -->
+        <div class="tab-content" id="3way-match">
+            <div class="section">
+                <div class="section-header">3-Way Matches</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice Number</th>
+                            <th>Vendor</th>
+                            <th>Invoice Amount</th>
+                            <th>PO Check</th>
+                            <th>GRN Check</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="show3WayDetail('INV-2025-003')">
+                            <td class="monospace">INV-2025-003</td>
+                            <td>ABC Supplies Ltd</td>
+                            <td>₹89,500</td>
+                            <td><span class="badge green">Within PO</span></td>
+                            <td><span class="badge green">Within GRN</span></td>
+                            <td><span class="badge amber">PENDING_3WAY</span></td>
+                            <td>›</td>
+                        </tr>
+                        <tr onclick="show3WayDetail('INV-2025-004')">
+                            <td class="monospace">INV-2025-004</td>
+                            <td>Global Trade Co</td>
+                            <td>₹156,250</td>
+                            <td><span class="badge green">Within PO</span></td>
+                            <td><span class="badge green">Within GRN</span></td>
+                            <td><span class="badge green">APPROVED</span></td>
+                            <td>›</td>
+                        </tr>
+                        <tr onclick="show3WayDetail('INV-2025-005')">
+                            <td class="monospace">INV-2025-005</td>
+                            <td>XYZ Industries</td>
+                            <td>₹225,000</td>
+                            <td><span class="badge red">Exceeds PO</span></td>
+                            <td><span class="badge green">Within GRN</span></td>
+                            <td><span class="badge amber">PENDING_3WAY</span></td>
+                            <td>›</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div class="tab-content" id="payments">
+            <div class="alert blue">
+                <span>ℹ️</span>
+                <strong>EOD batch runs automatically at 11:59 PM IST.</strong> Approved 3-way matches are queued. Failures are retried next batch.
+            </div>
+
+            <div class="section">
+                <div class="section-header">Payment Bundles</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bundle ID</th>
+                            <th>Invoice Number</th>
+                            <th>Amount</th>
+                            <th>Credit Notes</th>
+                            <th>Payable</th>
+                            <th>Status</th>
+                            <th>Pazy Invoice ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">BDL-20250130-001</td>
+                            <td class="monospace">INV-2025-004</td>
+                            <td>₹156,250</td>
+                            <td>—</td>
+                            <td><strong>₹156,250</strong></td>
+                            <td><span class="badge blue">PAYMENT_INITIATED</span></td>
+                            <td class="monospace">PZY-INV-78945</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">BDL-20250129-048</td>
+                            <td class="monospace">INV-2025-003</td>
+                            <td>₹89,500</td>
+                            <td class="text-amber">₹4,500</td>
+                            <td><strong>₹85,000</strong></td>
+                            <td><span class="badge green">SETTLED</span></td>
+                            <td class="monospace">PZY-INV-78921</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">BDL-20250129-047</td>
+                            <td class="monospace">INV-2025-002</td>
+                            <td>₹120,000</td>
+                            <td>—</td>
+                            <td><strong>₹120,000</strong></td>
+                            <td><span class="badge green">SETTLED</span></td>
+                            <td class="monospace">PZY-INV-78899</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">BDL-20250128-042</td>
+                            <td class="monospace">INV-2025-001</td>
+                            <td>₹67,800</td>
+                            <td>—</td>
+                            <td><strong>₹67,800</strong></td>
+                            <td><span class="badge red">PAYMENT_FAILED</span></td>
+                            <td>—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Credit Notes</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CN ID</th>
+                            <th>Invoice</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Applied By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">CN-2025-001</td>
+                            <td class="monospace">INV-2025-003</td>
+                            <td class="text-amber">-₹4,500</td>
+                            <td>Damaged goods return</td>
+                            <td>2025-01-29</td>
+                            <td>John Doe</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">CN-2025-002</td>
+                            <td class="monospace">INV-2024-987</td>
+                            <td class="text-amber">-₹12,000</td>
+                            <td>Pricing adjustment</td>
+                            <td>2025-01-27</td>
+                            <td>Sarah Smith</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Vendors Tab -->
+        <div class="tab-content" id="vendors">
+            <div class="section">
+                <div class="section-header">Vendor Ledger</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Pazy Vendor ID</th>
+                            <th>Status</th>
+                            <th>Payment Terms</th>
+                            <th>GST</th>
+                            <th>Total Payable</th>
+                            <th>Total Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="showVendorDetail('vendor1')">
+                            <td><strong>XYZ Industries</strong></td>
+                            <td class="monospace">VND-12345</td>
+                            <td><span class="badge green">Active</span></td>
+                            <td>net 30</td>
+                            <td class="monospace">27AABCU9603R1ZX</td>
+                            <td>₹342,500</td>
+                            <td>₹2,450,000</td>
+                        </tr>
+                        <tr onclick="showVendorDetail('vendor2')">
+                            <td><strong>ABC Supplies Ltd</strong></td>
+                            <td class="text-red">Not synced</td>
+                            <td><span class="badge amber">Approval Pending</span></td>
+                            <td>net 45</td>
+                            <td class="monospace">29AABCS1234F1Z5</td>
+                            <td>₹89,500</td>
+                            <td>₹1,280,000</td>
+                        </tr>
+                        <tr onclick="showVendorDetail('vendor3')">
+                            <td><strong>Global Trade Co</strong></td>
+                            <td class="monospace">VND-12389</td>
+                            <td><span class="badge green">Active</span></td>
+                            <td>net 30</td>
+                            <td class="monospace">24AABCG5432M1Z8</td>
+                            <td>₹156,250</td>
+                            <td>₹3,890,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Exceptions Tab -->
+        <div class="tab-content" id="exceptions">
+            <div class="section">
+                <div class="section-header">Expired POs</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Vendor</th>
+                            <th>Expiry Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">PO-2024-0891</td>
+                            <td>ABC Supplies Ltd</td>
+                            <td class="text-red">2025-01-22</td>
+                            <td>Finance override required</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Vendor Sync Issues</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ABC Supplies Ltd</strong></td>
+                            <td><span class="badge amber">Approval Pending</span></td>
+                            <td>Awaiting Pazy approval</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Override Log</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice</th>
+                            <th>SKU</th>
+                            <th>Qty (From → To)</th>
+                            <th>Rate (From → To)</th>
+                            <th>Resolved By</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">INV-2025-001</td>
+                            <td>Widget B</td>
+                            <td>—</td>
+                            <td><span class="text-red">₹1,000</span> → <span class="text-green">₹950</span></td>
+                            <td>John Doe</td>
+                            <td>2025-01-30 10:15:23</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">INV-2025-003</td>
+                            <td>Item X</td>
+                            <td><span class="text-red">100</span> → <span class="text-green">95</span></td>
+                            <td>—</td>
+                            <td>Sarah Smith</td>
+                            <td>2025-01-29 14:22:11</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">INV-2025-005</td>
+                            <td>Component Z</td>
+                            <td><span class="text-red">50</span> → <span class="text-green">48</span></td>
+                            <td><span class="text-red">₹2,500</span> → <span class="text-green">₹2,450</span></td>
+                            <td>John Doe</td>
+                            <td>2025-01-28 11:33:45</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pazy Log Tab -->
+        <div class="tab-content" id="pazy-log">
+            <div class="section">
+                <div class="section-header">Pazy Integration Audit Log</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Bundle ID</th>
+                            <th>Endpoint</th>
+                            <th>HTTP Status</th>
+                            <th>Error Code</th>
+                            <th>Message</th>
+                            <th>Pazy Invoice ID</th>
+                            <th>Retry Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-01-30 09:15:23</td>
+                            <td class="monospace">BDL-20250130-001</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge green">200</span></td>
+                            <td>—</td>
+                            <td>Invoice submitted successfully</td>
+                            <td class="monospace">PZY-INV-78945</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-30 08:42:11</td>
+                            <td class="monospace">BDL-20250129-048</td>
+                            <td>/v1.0/invoice/:id</td>
+                            <td><span class="badge green">200</span></td>
+                            <td>—</td>
+                            <td>Payment status: PAID</td>
+                            <td class="monospace">PZY-INV-78921</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-29 23:59:12</td>
+                            <td class="monospace">BDL-20250129-047</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge green">200</span></td>
+                            <td>—</td>
+                            <td>EOD batch executed</td>
+                            <td class="monospace">PZY-INV-78899</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-29 18:22:33</td>
+                            <td class="monospace">BDL-20250129-045</td>
+                            <td>/v1.0/vendor</td>
+                            <td><span class="badge red">400</span></td>
+                            <td class="monospace text-red">VENDOR_NOT_FOUND</td>
+                            <td>Vendor sync failed - vendor not found in Pazy</td>
+                            <td>—</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-28 23:59:45</td>
+                            <td class="monospace">BDL-20250128-042</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge red">500</span></td>
+                            <td class="monospace text-red">INTERNAL_ERROR</td>
+                            <td>Invoice creation failed - internal server error</td>
+                            <td>—</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-28 16:12:08</td>
+                            <td class="monospace">BDL-20250128-041</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge green">200</span></td>
+                            <td>—</td>
+                            <td>Invoice submitted successfully</td>
+                            <td class="monospace">PZY-INV-78876</td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PO Detail Modal -->
+    <div class="modal" id="poModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>PO-2024-1234 Details</h2>
+                <button class="close-btn" onclick="closeModal('poModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Vendor</span>
+                        <span class="info-value">XYZ Industries</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span class="badge green">Active</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Issued</span>
+                        <span class="info-value">2024-11-15</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Expiry</span>
+                        <span class="info-value">2025-05-15</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total</span>
+                        <span class="info-value">₹450,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Available</span>
+                        <span class="info-value">₹72,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Pazy PO ID</span>
+                        <span class="info-value monospace">PZY-PO-45678</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GST</span>
+                        <span class="info-value">18%</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 style="margin-bottom: 1rem;">Line Items</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Ordered Qty</th>
+                            <th>Approved Qty</th>
+                            <th>Available Qty</th>
+                            <th>Rate</th>
+                            <th>Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Widget A</td>
+                            <td>500</td>
+                            <td>500</td>
+                            <td class="text-amber">80</td>
+                            <td>₹500</td>
+                            <td>₹250,000</td>
+                        </tr>
+                        <tr>
+                            <td>Widget B</td>
+                            <td>200</td>
+                            <td>200</td>
+                            <td>150</td>
+                            <td>₹1,000</td>
+                            <td>₹200,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRN Detail Modal -->
+    <div class="modal" id="grnModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>GRN-2025-0045 Details</h2>
+                <button class="close-btn" onclick="closeModal('grnModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">PO</span>
+                        <span class="info-value monospace">PO-2024-1234</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Received Date</span>
+                        <span class="info-value">2025-01-28</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Gross Value</span>
+                        <span class="info-value">₹130,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Net of RTV</span>
+                        <span class="info-value">₹125,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Pazy GRN ID</span>
+                        <span class="info-value monospace">PZY-GRN-12345</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span class="badge green">Received</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 style="margin-bottom: 1rem;">Items Received</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Widget A</td>
+                            <td>100</td>
+                            <td>₹500</td>
+                            <td>₹50,000</td>
+                        </tr>
+                        <tr>
+                            <td>Widget B</td>
+                            <td>80</td>
+                            <td>₹1,000</td>
+                            <td>₹80,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="divider"></div>
+
+                <h3 style="margin-bottom: 1rem;">RTVs (Return to Vendor)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RTV ID</th>
+                            <th>Qty Returned</th>
+                            <th>Value</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">RTV-2025-001</td>
+                            <td>5</td>
+                            <td class="text-amber">-₹2,500</td>
+                            <td>Damaged packaging</td>
+                            <td>2025-01-28</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">RTV-2025-002</td>
+                            <td>5</td>
+                            <td class="text-amber">-₹2,500</td>
+                            <td>Wrong specification</td>
+                            <td>2025-01-28</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-Way Match Detail Modal -->
+    <div class="modal" id="threeWayModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>3-Way Match: INV-2025-003</h2>
+                <button class="close-btn" onclick="closeModal('threeWayModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <div class="info-item">
+                        <span class="info-label">PO Available</span>
+                        <span class="info-value">₹125,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GRN Net of RTV</span>
+                        <span class="info-value">₹120,000 <span class="text-amber">(₹5,000 RTV)</span></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Invoice Total</span>
+                        <span class="info-value">₹89,500</span>
+                    </div>
+                </div>
+
+                <div class="info-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 1rem;">
+                    <div class="info-item">
+                        <span class="info-label">PO Check</span>
+                        <span class="badge green">Within PO</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GRN Check</span>
+                        <span class="badge green">Within GRN</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span class="badge amber">PENDING_3WAY</span>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 style="margin-bottom: 1rem;">Final Invoice Lines</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Tax %</th>
+                            <th>Line Total (incl. tax)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Widget X</td>
+                            <td>50</td>
+                            <td>₹800</td>
+                            <td>18%</td>
+                            <td>₹47,200</td>
+                        </tr>
+                        <tr>
+                            <td>Widget Y</td>
+                            <td>30</td>
+                            <td>₹1,200</td>
+                            <td>18%</td>
+                            <td>₹42,480</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="divider"></div>
+
+                <div style="text-align: center;">
+                    <button class="button purple" onclick="approve3Way()">
+                        Approve & queue for payment
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Detail Modal -->
+    <div class="modal" id="vendorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>XYZ Industries</h2>
+                <button class="close-btn" onclick="closeModal('vendorModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span class="badge green">Active</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Pazy Vendor ID</span>
+                        <span class="info-value monospace">VND-12345</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">GST</span>
+                        <span class="info-value monospace">27AABCU9603R1ZX</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">PAN</span>
+                        <span class="info-value monospace">AABCU9603R</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Payment Terms</span>
+                        <span class="info-value">net 30</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Email</span>
+                        <span class="info-value">accounts@xyzind.com</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Phone</span>
+                        <span class="info-value">+91 98765 43210</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Modal functions
+        function showPoDetail(poNumber) {
+            document.getElementById('poModal').classList.add('active');
+        }
+
+        function showGrnDetail(grnNumber) {
+            document.getElementById('grnModal').classList.add('active');
+        }
+
+        function show3WayDetail(invoiceNumber) {
+            document.getElementById('threeWayModal').classList.add('active');
+        }
+
+        function showVendorDetail(vendorId) {
+            document.getElementById('vendorModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // Invoice selection
+        function selectInvoice(invoiceNumber) {
+            document.querySelectorAll('.list-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Approve row in invoice match
+        function approveRow(rowId) {
+            const qtyInput = document.getElementById('qty-' + rowId);
+            if (qtyInput && qtyInput.value) {
+                alert('Row approved! Final quantity: ' + qtyInput.value);
+                // In real implementation, this would update the backend and refresh the UI
+                document.getElementById('passTo3WayBtn').disabled = false;
+                document.getElementById('passTo3WayBtn').textContent = 'Pass to 3-way match';
+            }
+        }
+
+        // Approve 3-way match
+        function approve3Way() {
+            if (confirm('Approve this 3-way match and queue for payment?')) {
+                alert('3-way match approved! Payment bundle created.');
+                closeModal('threeWayModal');
+                // In real implementation, this would update the backend
+            }
+        }
+
+        // Filter functions
+        function clearPoFilters() {
+            document.getElementById('poSearch').value = '';
+            document.getElementById('poVendorFilter').value = '';
+            document.getElementById('poStatusFilter').value = '';
+        }
+
+        function clearGrnFilters() {
+            document.getElementById('grnPoFilter').value = '';
+            document.getElementById('grnStatusFilter').value = '';
+            document.getElementById('grnDateFrom').value = '';
+            document.getElementById('grnDateTo').value = '';
+        }
+
+        // Escape key to close modals
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // Initialize
+        console.log('Firstclub Finance System v3.0 loaded');
+        console.log('Integration: Pazy API');
+        console.log('Status: Ready');
+    </script>
+</body>
+</html>
