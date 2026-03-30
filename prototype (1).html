@@ -1,0 +1,1783 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firstclub Finance - Procurement & Invoice System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #1a1a1a;
+        }
+
+        .tab-navigation {
+            background: white;
+            border-bottom: 2px solid #e0e0e0;
+            padding: 0 2rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 1rem 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .tab-button:hover {
+            color: #333;
+            background: #f9f9f9;
+        }
+
+        .tab-button.active {
+            color: #6366f1;
+            border-bottom-color: #6366f1;
+            font-weight: 500;
+        }
+
+        .tab-button .dot-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+        }
+
+        .content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .metric-card h3 {
+            font-size: 0.875rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1a1a1a;
+        }
+
+        .alert-card {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid;
+        }
+
+        .alert-card.red {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .alert-card.amber {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-input, .filter-select {
+            padding: 0.5rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            min-width: 200px;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        thead {
+            background: #f9fafb;
+        }
+
+        th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-amber {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge-purple {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .monospace {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            margin: 2rem;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .close-btn:hover {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-item {
+            padding: 0.75rem;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .red-text {
+            color: #dc2626;
+        }
+
+        .green-text {
+            color: #16a34a;
+        }
+
+        .amber-text {
+            color: #d97706;
+        }
+
+        .split-panel {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1.5rem;
+            height: calc(100vh - 200px);
+        }
+
+        .list-panel {
+            background: white;
+            border-radius: 8px;
+            overflow-y: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .detail-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .list-item {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .list-item:hover {
+            background: #f9fafb;
+        }
+
+        .list-item.active {
+            background: #eff6ff;
+            border-left: 3px solid #6366f1;
+        }
+
+        .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .summary-card {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .comparison-table {
+            margin-bottom: 1.5rem;
+        }
+
+        .comparison-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr 2fr;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+        }
+
+        .comparison-row.header {
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .comparison-row.matched {
+            background: white;
+        }
+
+        .comparison-row.unresolved {
+            background: #fef2f2;
+        }
+
+        .comparison-row.resolved {
+            background: #f0fdf4;
+        }
+
+        .action-inputs {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .inline-input {
+            padding: 0.25rem 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            width: 80px;
+            font-size: 0.875rem;
+        }
+
+        .preview-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-card {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .preview-card.pass {
+            border-color: #22c55e;
+            background: #f0fdf4;
+        }
+
+        .preview-card.fail {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .override-log {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #9ca3af;
+        }
+
+        .banner {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            color: #1e40af;
+        }
+
+        .three-col-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .rate-check-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+        }
+
+        .override-form {
+            padding: 1.5rem;
+            background: #fffbeb;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .split-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .comparison-row {
+                grid-template-columns: 1fr;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Firstclub Finance</h1>
+    </div>
+
+    <nav class="tab-navigation">
+        <button class="tab-button active" data-tab="overview">Overview</button>
+        <button class="tab-button" data-tab="procurement">Procurement</button>
+        <button class="tab-button" data-tab="invoice-match">
+            Invoice match
+            <span class="dot-indicator"></span>
+        </button>
+        <button class="tab-button" data-tab="3way-match">
+            3-way match
+            <span class="dot-indicator"></span>
+        </button>
+        <button class="tab-button" data-tab="payments">Payments</button>
+        <button class="tab-button" data-tab="vendors">Vendors</button>
+        <button class="tab-button" data-tab="exceptions">Exceptions</button>
+        <button class="tab-button" data-tab="pazy-log">Pazy log</button>
+    </nav>
+
+    <div class="content">
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <h3>Active POs</h3>
+                    <div class="value">12</div>
+                </div>
+                <div class="metric-card">
+                    <h3>Invoice match pending</h3>
+                    <div class="value">3</div>
+                </div>
+                <div class="metric-card">
+                    <h3>3-way match pending</h3>
+                    <div class="value">5</div>
+                </div>
+                <div class="metric-card">
+                    <h3>EOD batch queued</h3>
+                    <div class="value">₹2,45,000</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Recent Pazy Log</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Bundle ID</th>
+                            <th>Event</th>
+                            <th>HTTP Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-01-15 14:32:15</td>
+                            <td class="monospace">BUN-2025-001</td>
+                            <td>Invoice submitted to Pazy</td>
+                            <td><span class="badge badge-green">200</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 14:28:03</td>
+                            <td class="monospace">BUN-2025-002</td>
+                            <td>Payment initiated</td>
+                            <td><span class="badge badge-green">200</span></td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 13:45:22</td>
+                            <td class="monospace">BUN-2025-003</td>
+                            <td>Invoice creation failed</td>
+                            <td><span class="badge badge-red">500</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Alerts</h2>
+                <div class="alert-card red">
+                    <strong>PO-2024-089</strong> expired on 2025-01-10. Finance override required for any invoices.
+                </div>
+                <div class="alert-card amber">
+                    <strong>Acme Supplies Ltd.</strong> - Payments blocked until resolved. Vendor pending approval in Pazy.
+                </div>
+            </div>
+        </div>
+
+        <!-- Procurement Tab -->
+        <div id="procurement" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Purchase Orders</h2>
+                
+                <div class="filters">
+                    <input type="text" class="filter-input" placeholder="Search PO number...">
+                    <select class="filter-select">
+                        <option>All Vendors</option>
+                        <option>Acme Supplies Ltd.</option>
+                        <option>Tech Hardware Co.</option>
+                        <option>Office Essentials Inc.</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>All Statuses</option>
+                        <option>Active</option>
+                        <option>Expired</option>
+                    </select>
+                    <button class="btn btn-secondary">Clear</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Vendor</th>
+                            <th>Issued</th>
+                            <th>Expiry</th>
+                            <th>Total</th>
+                            <th>Consumed</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="po-table-body">
+                        <tr onclick="showPOModal('PO-2024-123')">
+                            <td class="monospace">PO-2024-123</td>
+                            <td>Acme Supplies Ltd.</td>
+                            <td>2024-11-15</td>
+                            <td>2025-02-15</td>
+                            <td>₹5,00,000</td>
+                            <td class="amber-text">₹4,25,000</td>
+                            <td>₹75,000</td>
+                            <td><span class="badge badge-green">Active</span></td>
+                        </tr>
+                        <tr onclick="showPOModal('PO-2024-089')">
+                            <td class="monospace">PO-2024-089</td>
+                            <td>Tech Hardware Co.</td>
+                            <td>2024-09-20</td>
+                            <td class="red-text">2025-01-10</td>
+                            <td>₹8,50,000</td>
+                            <td>₹8,50,000</td>
+                            <td>₹0</td>
+                            <td><span class="badge badge-red">Expired</span></td>
+                        </tr>
+                        <tr onclick="showPOModal('PO-2025-001')">
+                            <td class="monospace">PO-2025-001</td>
+                            <td>Office Essentials Inc.</td>
+                            <td>2025-01-05</td>
+                            <td>2025-04-05</td>
+                            <td>₹3,00,000</td>
+                            <td>₹45,000</td>
+                            <td>₹2,55,000</td>
+                            <td><span class="badge badge-green">Active</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Goods Receipt Notes (GRNs)</h2>
+                
+                <div class="filters">
+                    <select class="filter-select">
+                        <option>All POs</option>
+                        <option>PO-2024-123</option>
+                        <option>PO-2024-089</option>
+                    </select>
+                    <select class="filter-select">
+                        <option>All Statuses</option>
+                        <option>Received</option>
+                        <option>Pending</option>
+                    </select>
+                    <input type="date" class="filter-input">
+                    <input type="date" class="filter-input">
+                    <button class="btn btn-secondary">Clear</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>GRN Number</th>
+                            <th>PO</th>
+                            <th>Vendor</th>
+                            <th>Received Date</th>
+                            <th>Net Value</th>
+                            <th>RTVs</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="grn-table-body">
+                        <tr onclick="showGRNModal('GRN-2025-045')">
+                            <td class="monospace">GRN-2025-045</td>
+                            <td>PO-2024-123</td>
+                            <td>Acme Supplies Ltd.</td>
+                            <td>2025-01-12</td>
+                            <td>₹1,85,000 <span class="amber-text">(−₹5,000 RTV)</span></td>
+                            <td><span class="badge badge-amber">1</span></td>
+                            <td><span class="badge badge-green">Received</span></td>
+                        </tr>
+                        <tr onclick="showGRNModal('GRN-2025-046')">
+                            <td class="monospace">GRN-2025-046</td>
+                            <td>PO-2025-001</td>
+                            <td>Office Essentials Inc.</td>
+                            <td>2025-01-14</td>
+                            <td>₹45,000</td>
+                            <td>—</td>
+                            <td><span class="badge badge-green">Received</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Invoice Match Tab -->
+        <div id="invoice-match" class="tab-content">
+            <div class="split-panel">
+                <div class="list-panel">
+                    <div class="list-item active" onclick="selectInvoice('INV-2025-015')">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong class="monospace">INV-2025-015</strong>
+                            <span class="badge badge-red">Discrepancy</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">
+                            <div>Acme Supplies Ltd.</div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                                <span>Pazy: ₹1,90,000</span>
+                                <span>Internal: ₹1,85,000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectInvoice('INV-2025-016')">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong class="monospace">INV-2025-016</strong>
+                            <span class="badge badge-green">Matched</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">
+                            <div>Office Essentials Inc.</div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                                <span>Pazy: ₹45,000</span>
+                                <span>Internal: ₹45,000</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-item" onclick="selectInvoice('INV-2025-014')">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <strong class="monospace">INV-2025-014</strong>
+                            <span class="badge badge-blue">Passed →</span>
+                        </div>
+                        <div style="font-size: 0.875rem; color: #6b7280;">
+                            <div>Tech Hardware Co.</div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 0.25rem;">
+                                <span>Pazy: ₹2,50,000</span>
+                                <span>Final: ₹2,48,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail-panel" id="invoice-detail">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h2 class="monospace" style="font-size: 1.25rem;">INV-2025-015</h2>
+                            <div style="color: #6b7280; margin-top: 0.25rem;">Acme Supplies Ltd.</div>
+                        </div>
+                        <span class="badge badge-red">Discrepancy</span>
+                    </div>
+
+                    <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Invoice Match: Pazy vs Internal</h3>
+
+                    <div class="summary-strip">
+                        <div class="summary-card">
+                            <div class="summary-label">Pazy Total</div>
+                            <div class="summary-value">₹1,90,000</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Internal Total</div>
+                            <div class="summary-value">₹1,85,000</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-label">Final Total*</div>
+                            <div class="summary-value green-text">₹1,87,000</div>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.75rem; color: #6b7280; margin-bottom: 1.5rem;">
+                        *Calculated from current values — finalised after all rows resolved
+                    </div>
+
+                    <div class="comparison-table">
+                        <div class="comparison-row header">
+                            <div>SKU</div>
+                            <div>Pazy Qty</div>
+                            <div>Pazy Rate</div>
+                            <div>Int. Qty</div>
+                            <div>Int. Rate</div>
+                            <div>Final Qty</div>
+                            <div>Final Rate</div>
+                            <div>Action</div>
+                        </div>
+
+                        <div class="comparison-row matched">
+                            <div><strong>Laptop Stand</strong></div>
+                            <div>10</div>
+                            <div>₹2,000</div>
+                            <div>10</div>
+                            <div>₹2,000</div>
+                            <div class="green-text">10</div>
+                            <div class="green-text">₹2,000</div>
+                            <div>Matched</div>
+                        </div>
+
+                        <div class="comparison-row unresolved">
+                            <div><strong>Monitor Arm</strong></div>
+                            <div class="red-text">25</div>
+                            <div class="red-text">₹6,000</div>
+                            <div class="amber-text">24</div>
+                            <div class="amber-text">₹5,800</div>
+                            <div>—</div>
+                            <div>—</div>
+                            <div class="action-inputs">
+                                <input type="number" class="inline-input" placeholder="Qty" value="24">
+                                <input type="number" class="inline-input" placeholder="Rate" value="5800">
+                                <button class="btn btn-primary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="resolveRow(this)">Approve</button>
+                            </div>
+                        </div>
+
+                        <div class="comparison-row resolved">
+                            <div><strong>Keyboard</strong></div>
+                            <div class="red-text">30</div>
+                            <div>₹1,500</div>
+                            <div class="amber-text">32</div>
+                            <div>₹1,500</div>
+                            <div class="green-text">32</div>
+                            <div class="green-text">₹1,500</div>
+                            <div>Resolved</div>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 1rem; font-weight: 600; margin: 1.5rem 0 1rem;">3-way Match Preview</h3>
+
+                    <div class="preview-cards">
+                        <div class="preview-card pass">
+                            <div class="summary-label">PO Available</div>
+                            <div style="font-size: 1.25rem; font-weight: 600; margin: 0.5rem 0;">₹75,000</div>
+                            <div class="green-text" style="font-size: 0.875rem;">✓ Within limit</div>
+                        </div>
+                        <div class="preview-card fail">
+                            <div class="summary-label">GRN Net of RTV</div>
+                            <div style="font-size: 1.25rem; font-weight: 600; margin: 0.5rem 0;">₹1,85,000</div>
+                            <div class="red-text" style="font-size: 0.875rem;">✗ Exceeds limit</div>
+                        </div>
+                        <div class="preview-card">
+                            <div class="summary-label">Invoice Total</div>
+                            <div style="font-size: 1.25rem; font-weight: 600; margin: 0.5rem 0;">₹1,87,000</div>
+                        </div>
+                    </div>
+
+                    <div class="override-log">
+                        <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem;">Override Log</h4>
+                        <div class="log-entry">
+                            <strong>Keyboard</strong>: Qty <span class="red-text">30</span> → <span class="green-text">32</span> | 
+                            Resolved by John Doe on 2025-01-15 14:22
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; text-align: right;">
+                        <button class="btn btn-secondary" style="margin-right: 0.5rem;" disabled>Resolve all discrepancies first</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3-way Match Tab -->
+        <div id="3way-match" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">3-Way Matches</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice Number</th>
+                            <th>Vendor</th>
+                            <th>Invoice Amount</th>
+                            <th>PO Check</th>
+                            <th>GRN Check</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="show3WayModal('INV-2025-012')">
+                            <td class="monospace">INV-2025-012</td>
+                            <td>Tech Hardware Co.</td>
+                            <td>₹2,48,000</td>
+                            <td><span class="badge badge-green">Within PO</span></td>
+                            <td><span class="badge badge-green">Within GRN</span></td>
+                            <td><span class="badge badge-amber">PENDING_3WAY</span></td>
+                            <td>›</td>
+                        </tr>
+                        <tr onclick="show3WayModal('INV-2025-013')">
+                            <td class="monospace">INV-2025-013</td>
+                            <td>Office Essentials Inc.</td>
+                            <td>₹45,000</td>
+                            <td><span class="badge badge-green">Within PO</span></td>
+                            <td><span class="badge badge-green">Within GRN</span></td>
+                            <td><span class="badge badge-green">APPROVED</span></td>
+                            <td>›</td>
+                        </tr>
+                        <tr onclick="show3WayModal('INV-2025-011')">
+                            <td class="monospace">INV-2025-011</td>
+                            <td>Acme Supplies Ltd.</td>
+                            <td>₹1,50,000</td>
+                            <td><span class="badge badge-red">Exceeds PO</span></td>
+                            <td><span class="badge badge-green">Within GRN</span></td>
+                            <td><span class="badge badge-amber">PENDING_3WAY</span></td>
+                            <td>›</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="empty-state" style="display: none;">
+                    <p>No matches yet. Resolve invoice discrepancies and pass them here.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="payments" class="tab-content">
+            <div class="banner">
+                <strong>EOD Batch Notice:</strong> EOD batch runs automatically at 11:59 PM IST. Approved 3-way matches are queued. Failures are retried next batch.
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Payment Bundles</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bundle ID</th>
+                            <th>Invoice Number</th>
+                            <th>Amount</th>
+                            <th>Credit Notes</th>
+                            <th>Payable</th>
+                            <th>Status</th>
+                            <th>Pazy Invoice ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">BUN-2025-001</td>
+                            <td class="monospace">INV-2025-013</td>
+                            <td>₹45,000</td>
+                            <td>—</td>
+                            <td><strong>₹45,000</strong></td>
+                            <td><span class="badge badge-purple">PAYMENT_INITIATED</span></td>
+                            <td class="monospace">PZ-INV-8832</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">BUN-2025-002</td>
+                            <td class="monospace">INV-2025-012</td>
+                            <td>₹2,48,000</td>
+                            <td class="amber-text">−₹3,000</td>
+                            <td><strong>₹2,45,000</strong></td>
+                            <td><span class="badge badge-purple">PAYMENT_INITIATED</span></td>
+                            <td class="monospace">PZ-INV-8833</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">BUN-2025-003</td>
+                            <td class="monospace">INV-2025-010</td>
+                            <td>₹1,20,000</td>
+                            <td>—</td>
+                            <td><strong>₹1,20,000</strong></td>
+                            <td><span class="badge badge-green">SETTLED</span></td>
+                            <td class="monospace">PZ-INV-8825</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">BUN-2025-004</td>
+                            <td class="monospace">INV-2025-008</td>
+                            <td>₹85,000</td>
+                            <td>—</td>
+                            <td><strong>₹85,000</strong></td>
+                            <td><span class="badge badge-red">PAYMENT_FAILED</span></td>
+                            <td>—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Credit Notes</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CN ID</th>
+                            <th>Invoice</th>
+                            <th>Amount</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                            <th>Applied By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">CN-2025-005</td>
+                            <td class="monospace">INV-2025-012</td>
+                            <td class="amber-text">−₹3,000</td>
+                            <td>Damaged items return</td>
+                            <td>2025-01-14</td>
+                            <td>Jane Smith</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">CN-2025-004</td>
+                            <td class="monospace">INV-2025-009</td>
+                            <td class="amber-text">−₹5,500</td>
+                            <td>Price adjustment</td>
+                            <td>2025-01-12</td>
+                            <td>John Doe</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Vendors Tab -->
+        <div id="vendors" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Vendor Ledger</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vendor</th>
+                            <th>Pazy Vendor ID</th>
+                            <th>Status</th>
+                            <th>Payment Terms</th>
+                            <th>GST</th>
+                            <th>Total Payable</th>
+                            <th>Total Paid</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr onclick="showVendorModal('Acme Supplies Ltd.')">
+                            <td><strong>Acme Supplies Ltd.</strong></td>
+                            <td class="monospace">PZ-VEN-1234</td>
+                            <td><span class="badge badge-green">Active</span></td>
+                            <td>net 30</td>
+                            <td>27AABCU9603R1ZX</td>
+                            <td>₹3,35,000</td>
+                            <td>₹2,80,000</td>
+                        </tr>
+                        <tr onclick="showVendorModal('Tech Hardware Co.')">
+                            <td><strong>Tech Hardware Co.</strong></td>
+                            <td class="monospace">PZ-VEN-1235</td>
+                            <td><span class="badge badge-green">Active</span></td>
+                            <td>net 45</td>
+                            <td>29AABCT1332L1ZV</td>
+                            <td>₹2,48,000</td>
+                            <td>₹8,50,000</td>
+                        </tr>
+                        <tr onclick="showVendorModal('Office Essentials Inc.')">
+                            <td><strong>Office Essentials Inc.</strong></td>
+                            <td class="red-text">Not synced</td>
+                            <td><span class="badge badge-amber">Pending Sync</span></td>
+                            <td>net 30</td>
+                            <td>24AABCO8765Q1ZY</td>
+                            <td>₹45,000</td>
+                            <td>₹0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Exceptions Tab -->
+        <div id="exceptions" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Expired POs</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PO Number</th>
+                            <th>Vendor</th>
+                            <th>Expiry Date</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">PO-2024-089</td>
+                            <td>Tech Hardware Co.</td>
+                            <td class="red-text">2025-01-10</td>
+                            <td>Finance override required</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Vendor Sync Issues</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vendor Name</th>
+                            <th>Status</th>
+                            <th>Action Required</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Office Essentials Inc.</td>
+                            <td><span class="badge badge-amber">Pending Sync</span></td>
+                            <td>Sync to Pazy</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">Override Log</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice</th>
+                            <th>SKU</th>
+                            <th>Qty Change</th>
+                            <th>Rate Change</th>
+                            <th>Resolved By</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">INV-2025-015</td>
+                            <td>Keyboard</td>
+                            <td><span class="red-text">30</span> → <span class="green-text">32</span></td>
+                            <td>—</td>
+                            <td>John Doe</td>
+                            <td>2025-01-15 14:22:15</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">INV-2025-014</td>
+                            <td>Monitor Arm</td>
+                            <td>—</td>
+                            <td><span class="red-text">₹6,000</span> → <span class="green-text">₹5,800</span></td>
+                            <td>Jane Smith</td>
+                            <td>2025-01-15 13:45:30</td>
+                        </tr>
+                        <tr>
+                            <td class="monospace">INV-2025-013</td>
+                            <td>Desk Chair</td>
+                            <td><span class="red-text">15</span> → <span class="green-text">14</span></td>
+                            <td><span class="red-text">₹8,500</span> → <span class="green-text">₹8,200</span></td>
+                            <td>John Doe</td>
+                            <td>2025-01-14 16:10:45</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pazy Log Tab -->
+        <div id="pazy-log" class="tab-content">
+            <div class="section">
+                <h2 class="section-title">Pazy Integration Audit Log</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Bundle ID</th>
+                            <th>Endpoint</th>
+                            <th>HTTP Status</th>
+                            <th>Error Code</th>
+                            <th>Message</th>
+                            <th>Pazy Invoice ID</th>
+                            <th>Retry Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2025-01-15 14:32:15</td>
+                            <td class="monospace">BUN-2025-001</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge badge-green">200</span></td>
+                            <td>—</td>
+                            <td>Invoice submitted successfully</td>
+                            <td class="monospace">PZ-INV-8832</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 14:28:03</td>
+                            <td class="monospace">BUN-2025-002</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge badge-green">200</span></td>
+                            <td>—</td>
+                            <td>Invoice submitted successfully</td>
+                            <td class="monospace">PZ-INV-8833</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 13:45:22</td>
+                            <td class="monospace">BUN-2025-003</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge badge-red">500</span></td>
+                            <td class="monospace red-text">INTERNAL_ERROR</td>
+                            <td>Invoice creation failed</td>
+                            <td>—</td>
+                            <td>1</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 12:15:40</td>
+                            <td class="monospace">BUN-2025-004</td>
+                            <td>/v1.0/invoice/:id</td>
+                            <td><span class="badge badge-green">200</span></td>
+                            <td>—</td>
+                            <td>Payment status poll: PAID</td>
+                            <td class="monospace">PZ-INV-8825</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 11:22:18</td>
+                            <td>—</td>
+                            <td>/v1.0/vendor</td>
+                            <td><span class="badge badge-green">200</span></td>
+                            <td>—</td>
+                            <td>Vendor created successfully</td>
+                            <td>—</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-15 10:55:33</td>
+                            <td class="monospace">BUN-2025-005</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge badge-red">400</span></td>
+                            <td class="monospace red-text">VENDOR_NOT_FOUND</td>
+                            <td>Vendor not in Pazy</td>
+                            <td>—</td>
+                            <td>0</td>
+                        </tr>
+                        <tr>
+                            <td>2025-01-14 23:59:45</td>
+                            <td class="monospace">BUN-2024-250</td>
+                            <td>/v1.0/invoice</td>
+                            <td><span class="badge badge-green">200</span></td>
+                            <td>—</td>
+                            <td>EOD batch: Invoice submitted</td>
+                            <td class="monospace">PZ-INV-8820</td>
+                            <td>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- PO Detail Modal -->
+    <div id="po-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="monospace">PO-2024-123</h2>
+                <button class="close-btn" onclick="closeModal('po-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Vendor</div>
+                        <div class="info-value">Acme Supplies Ltd.</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value"><span class="badge badge-green">Active</span></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Issued</div>
+                        <div class="info-value">2024-11-15</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Expiry</div>
+                        <div class="info-value">2025-02-15</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Total</div>
+                        <div class="info-value">₹5,00,000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Available</div>
+                        <div class="info-value">₹75,000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Pazy PO ID</div>
+                        <div class="info-value monospace">PZ-PO-5678</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">GST</div>
+                        <div class="info-value">18%</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 1.5rem 0 1rem; font-weight: 600;">Line Items</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Ordered Qty</th>
+                            <th>Approved Qty</th>
+                            <th>Available Qty</th>
+                            <th>Rate</th>
+                            <th>Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Laptop Stand</td>
+                            <td>50</td>
+                            <td>50</td>
+                            <td class="amber-text">8</td>
+                            <td>₹2,000</td>
+                            <td>₹1,00,000</td>
+                        </tr>
+                        <tr>
+                            <td>Monitor Arm</td>
+                            <td>30</td>
+                            <td>30</td>
+                            <td>12</td>
+                            <td>₹5,800</td>
+                            <td>₹1,74,000</td>
+                        </tr>
+                        <tr>
+                            <td>Keyboard</td>
+                            <td>150</td>
+                            <td>150</td>
+                            <td>32</td>
+                            <td>₹1,500</td>
+                            <td>₹2,25,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- GRN Detail Modal -->
+    <div id="grn-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="monospace">GRN-2025-045</h2>
+                <button class="close-btn" onclick="closeModal('grn-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">PO</div>
+                        <div class="info-value monospace">PO-2024-123</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Received Date</div>
+                        <div class="info-value">2025-01-12</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Gross Value</div>
+                        <div class="info-value">₹1,90,000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Net of RTV</div>
+                        <div class="info-value">₹1,85,000</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Pazy GRN ID</div>
+                        <div class="info-value monospace">PZ-GRN-9012</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value"><span class="badge badge-green">Received</span></div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 1.5rem 0 1rem; font-weight: 600;">Items Received</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Laptop Stand</td>
+                            <td>10</td>
+                            <td>₹2,000</td>
+                            <td>₹20,000</td>
+                        </tr>
+                        <tr>
+                            <td>Monitor Arm</td>
+                            <td>25</td>
+                            <td>₹6,000</td>
+                            <td>₹1,50,000</td>
+                        </tr>
+                        <tr>
+                            <td>Keyboard</td>
+                            <td>13</td>
+                            <td>₹1,500</td>
+                            <td>₹19,500</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin: 1.5rem 0 1rem; font-weight: 600;">RTVs (Returns to Vendor)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>RTV ID</th>
+                            <th>Qty Returned</th>
+                            <th>Value</th>
+                            <th>Reason</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="monospace">RTV-2025-008</td>
+                            <td>3</td>
+                            <td class="amber-text">−₹5,000</td>
+                            <td>Damaged in transit</td>
+                            <td>2025-01-13</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-Way Match Modal -->
+    <div id="3way-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="monospace">INV-2025-012</h2>
+                <button class="close-btn" onclick="closeModal('3way-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="two-col-grid" style="margin-bottom: 1.5rem;">
+                    <div class="info-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="info-item">
+                            <div class="info-label">PO Available</div>
+                            <div class="info-value">₹2,75,000</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">GRN Net of RTV</div>
+                            <div class="info-value">₹2,48,000</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Invoice Total</div>
+                            <div class="info-value">₹2,48,000</div>
+                        </div>
+                    </div>
+                    <div class="info-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                        <div class="info-item">
+                            <div class="info-label">PO Check</div>
+                            <div class="info-value"><span class="badge badge-green">Within PO</span></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">GRN Check</div>
+                            <div class="info-value"><span class="badge badge-green">Within GRN</span></div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value"><span class="badge badge-amber">PENDING_3WAY</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 1.5rem 0 1rem; font-weight: 600;">Final Invoice Lines</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Tax %</th>
+                            <th>Line Total (incl. tax)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Laptop Stand</td>
+                            <td>10</td>
+                            <td>₹2,000</td>
+                            <td>18%</td>
+                            <td>₹23,600</td>
+                        </tr>
+                        <tr>
+                            <td>Monitor Arm</td>
+                            <td>24</td>
+                            <td>₹5,800</td>
+                            <td>18%</td>
+                            <td>₹1,64,448</td>
+                        </tr>
+                        <tr>
+                            <td>Keyboard</td>
+                            <td>32</td>
+                            <td>₹1,500</td>
+                            <td>18%</td>
+                            <td>₹56,640</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3 style="margin: 1.5rem 0 1rem; font-weight: 600;">Unit Rate Check</h3>
+                <div class="rate-check-row header">
+                    <div>SKU</div>
+                    <div>PO Rate</div>
+                    <div>Invoice Rate</div>
+                    <div>Variance</div>
+                    <div>Check</div>
+                </div>
+                <div class="rate-check-row" style="background: white;">
+                    <div>Laptop Stand</div>
+                    <div>₹2,000</div>
+                    <div>₹2,000</div>
+                    <div>—</div>
+                    <div><span class="badge badge-green">Pass</span></div>
+                </div>
+                <div class="rate-check-row" style="background: white;">
+                    <div>Monitor Arm</div>
+                    <div>₹5,800</div>
+                    <div>₹5,800</div>
+                    <div>—</div>
+                    <div><span class="badge badge-green">Pass</span></div>
+                </div>
+                <div class="rate-check-row" style="background: white;">
+                    <div>Keyboard</div>
+                    <div>₹1,500</div>
+                    <div>₹1,500</div>
+                    <div>—</div>
+                    <div><span class="badge badge-green">Pass</span></div>
+                </div>
+
+                <div style="margin-top: 2rem; text-align: right;">
+                    <button class="btn btn-primary" style="background: #9333ea;" onclick="approve3Way()">Approve & queue for payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vendor Modal -->
+    <div id="vendor-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Acme Supplies Ltd.</h2>
+                <button class="close-btn" onclick="closeModal('vendor-modal')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value"><span class="badge badge-green">Active</span></div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Pazy Vendor ID</div>
+                        <div class="info-value monospace">PZ-VEN-1234</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">GST</div>
+                        <div class="info-value">27AABCU9603R1ZX</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">PAN</div>
+                        <div class="info-value">AABCU9603R</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Payment Terms</div>
+                        <div class="info-value">net 30</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Navigation
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.dataset.tab;
+                
+                // Update active tab button
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Update active tab content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Modal Functions
+        function showPOModal(poNumber) {
+            document.getElementById('po-modal').classList.add('active');
+        }
+
+        function showGRNModal(grnNumber) {
+            document.getElementById('grn-modal').classList.add('active');
+        }
+
+        function show3WayModal(invoiceNumber) {
+            document.getElementById('3way-modal').classList.add('active');
+        }
+
+        function showVendorModal(vendorName) {
+            document.getElementById('vendor-modal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modal on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        // Invoice Selection
+        function selectInvoice(invoiceNumber) {
+            document.querySelectorAll('.list-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        // Resolve Row Function
+        function resolveRow(button) {
+            const row = button.closest('.comparison-row');
+            row.classList.remove('unresolved');
+            row.classList.add('resolved');
+            
+            const qtyInput = row.querySelector('input[placeholder="Qty"]');
+            const rateInput = row.querySelector('input[placeholder="Rate"]');
+            
+            const finalQtyCell = row.children[5];
+            const finalRateCell = row.children[6];
+            const actionCell = row.children[7];
+            
+            finalQtyCell.innerHTML = `<span class="green-text">${qtyInput.value}</span>`;
+            finalRateCell.innerHTML = `<span class="green-text">₹${rateInput.value}</span>`;
+            actionCell.innerHTML = 'Resolved';
+            
+            // Update override log
+            const overrideLog = document.querySelector('.override-log');
+            const skuName = row.querySelector('strong').textContent;
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<strong>${skuName}</strong>: Qty updated, Rate updated | Resolved by John Doe on ${new Date().toLocaleString()}`;
+            overrideLog.appendChild(logEntry);
+            
+            // Check if all rows are resolved
+            const unresolvedRows = document.querySelectorAll('.comparison-row.unresolved');
+            if (unresolvedRows.length === 0) {
+                const passButton = document.querySelector('#invoice-detail .btn-secondary');
+                passButton.disabled = false;
+                passButton.textContent = 'Pass to 3-way match';
+                passButton.classList.remove('btn-secondary');
+                passButton.classList.add('btn-primary');
+            }
+        }
+
+        // Approve 3-Way Match
+        function approve3Way() {
+            alert('3-way match approved and queued for payment!');
+            closeModal('3way-modal');
+            
+            // Update the status in the table
+            const row = document.querySelector('tbody tr[onclick*="INV-2025-012"]');
+            if (row) {
+                const statusCell = row.children[5];
+                statusCell.innerHTML = '<span class="badge badge-green">APPROVED</span>';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Firstclub Finance System Loaded');
+        });
+    </script>
+</body>
+</html>
