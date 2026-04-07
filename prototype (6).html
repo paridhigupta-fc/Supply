@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendor Management Portal</title>
+<style>
+  :root {
+    --primary: #5b5bd6;
+    --primary-light: #ebebfb;
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f8f8fc;
+    --color-background-tertiary: #f1f1f7;
+    --color-text-primary: #1a1a2e;
+    --color-text-secondary: #4a4a6a;
+    --color-text-tertiary: #8888aa;
+    --color-border-primary: #e0e0ef;
+    --color-border-tertiary: #ebebf5;
+    --color-background-success: #e8faf0;
+    --color-text-success: #1a7f4b;
+    --color-background-warning: #fff8e6;
+    --color-text-warning: #a85e00;
+    --color-background-danger: #fdeaea;
+    --color-text-danger: #c0392b;
+    --color-background-info: #e8f0fd;
+    --color-text-info: #1a5fb4;
+    --success: #1a7f4b;
+    --warning: #a85e00;
+    --danger: #c0392b;
+    --info: #1a5fb4;
+    --teal: #0d9488;
+    --teal-light: #e0f7f5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--color-background-secondary); color: var(--color-text-primary); font-size: 14px; }
+  
+  /* Layout */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; background: var(--color-background-primary); border-right: 0.5px solid var(--color-border-primary); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 16px; border-bottom: 0.5px solid var(--color-border-primary); }
+  .sidebar-logo span { font-size: 17px; font-weight: 600; color: var(--primary); }
+  .sidebar-nav { padding: 8px 0; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; cursor: pointer; font-size: 13px; color: var(--color-text-secondary); border-radius: 0; transition: background 0.15s; }
+  .nav-item:hover { background: var(--color-background-secondary); }
+  .nav-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+  .nav-icon { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  
+  /* Page header */
+  .page-header { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-primary); padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+  .page-header-icon { width: 36px; height: 36px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; flex-shrink: 0; }
+  .page-header-text h1 { font-size: 17px; font-weight: 500; }
+  .page-header-text p { font-size: 12px; color: var(--color-text-tertiary); margin-top: 1px; }
+  
+  /* Tab bar */
+  .tab-bar { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-primary); padding: 0 24px; display: flex; gap: 0; }
+  .tab-item { padding: 11px 16px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: all 0.15s; white-space: nowrap; }
+  .tab-item:hover { color: var(--primary); }
+  .tab-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+  
+  /* Content area */
+  .content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  
+  /* Toolbar */
+  .toolbar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .search-input { padding: 7px 10px; border: 0.5px solid var(--color-border-primary); border-radius: 6px; font-size: 13px; width: 220px; outline: none; background: var(--color-background-primary); color: var(--color-text-primary); }
+  .search-input:focus { border-color: var(--primary); }
+  select.filter-select { padding: 7px 10px; border: 0.5px solid var(--color-border-primary); border-radius: 6px; font-size: 13px; outline: none; background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
+  .btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: #4a4ac0; }
+  .btn-outline { background: transparent; border: 0.5px solid var(--color-border-primary); color: var(--color-text-secondary); }
+  .btn-outline:hover { background: var(--color-background-secondary); }
+  .btn-teal { background: var(--teal-light); color: var(--teal); border: 0.5px solid #a7d9d5; }
+  .btn-teal:hover { background: #c5eeeb; }
+  .btn-danger { background: var(--color-background-danger); color: var(--danger); border: 0.5px solid #f5c6c6; }
+  .btn-success { background: var(--color-background-success); color: var(--success); border: 0.5px solid #a7d9bb; }
+  .btn-sm { padding: 5px 9px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .toolbar-spacer { flex: 1; }
+  
+  /* Table */
+  .table-wrapper { background: var(--color-background-primary); border: 0.5px solid var(--color-border-primary); border-radius: 8px; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { background: var(--color-background-secondary); }
+  thead th { padding: 9px 12px; font-size: 12px; font-weight: 500; color: var(--color-text-tertiary); text-align: left; border-bottom: 0.5px solid var(--color-border-primary); white-space: nowrap; }
+  tbody tr { border-bottom: 0.5px solid var(--color-border-tertiary); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--color-background-secondary); }
+  tbody td { padding: 9px 12px; font-size: 13px; vertical-align: middle; }
+  .vendor-link { color: var(--primary); font-weight: 500; cursor: pointer; text-decoration: none; }
+  .vendor-link:hover { text-decoration: underline; }
+  
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; gap: 3px; border-radius: 10px; padding: 2px 8px; font-size: 11px; font-weight: 500; white-space: nowrap; }
+  .badge-green { background: var(--color-background-success); color: var(--color-text-success); }
+  .badge-grey { background: var(--color-background-tertiary); color: var(--color-text-tertiary); }
+  .badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+  .badge-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .badge-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .badge-purple { background: var(--primary-light); color: var(--primary); }
+  
+  /* Icon buttons */
+  .icon-btn { width: 28px; height: 28px; border-radius: 6px; border: 0.5px solid; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; transition: opacity 0.15s; }
+  .icon-btn:hover { opacity: 0.75; }
+  .icon-btn-view { background: var(--color-background-info); border-color: #b3cef5; color: var(--color-text-info); }
+  .icon-btn-download { background: var(--color-background-success); border-color: #a7d9bb; color: var(--color-text-success); }
+  .icon-btn-edit { background: var(--color-background-primary); border-color: var(--color-border-primary); color: var(--color-text-tertiary); }
+  .icon-btn-delete { background: var(--color-background-danger); border-color: #f5c6c6; color: var(--color-text-danger); }
+  .actions-cell { display: flex; gap: 4px; align-items: center; }
+  
+  /* Inline detail panel */
+  .inline-panel { background: var(--color-background-primary); border: 0.5px solid var(--color-border-primary); border-radius: 8px; margin: 4px 0 8px; padding: 16px; }
+  .panel-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #3b82f6; color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .panel-header-info { flex: 1; }
+  .panel-vendor-name { font-size: 14px; font-weight: 500; }
+  .panel-vendor-code { font-size: 12px; color: var(--color-text-tertiary); }
+  .panel-header-actions { display: flex; gap: 6px; align-items: center; margin-left: auto; }
+  
+  /* Field grid */
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 16px; }
+  .field-group { display: flex; flex-direction: column; gap: 2px; }
+  .field-group.full-width { grid-column: 1 / -1; }
+  .field-label { font-size: 11px; color: var(--color-text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.03em; }
+  .field-value { font-size: 13px; color: var(--color-text-primary); }
+  
+  /* Status lifecycle */
+  .lifecycle { display: flex; gap: 4px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .lifecycle-pill { padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 500; background: var(--color-background-tertiary); color: var(--color-text-tertiary); }
+  .lifecycle-pill.current { background: var(--primary); color: white; }
+  .lifecycle-arrow { color: var(--color-text-tertiary); font-size: 10px; }
+  
+  /* Sub-tabs */
+  .sub-tab-bar { display: flex; border-bottom: 0.5px solid var(--color-border-primary); margin-bottom: 14px; }
+  .sub-tab { padding: 8px 14px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -0.5px; }
+  .sub-tab:hover { color: var(--primary); }
+  .sub-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+  
+  /* Location row */
+  .location-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .location-row:last-child { border-bottom: none; }
+  .location-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+  .location-info { flex: 1; }
+  .location-name { font-size: 13px; font-weight: 500; }
+  .location-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+  
+  /* Document row */
+  .doc-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .doc-row:last-child { border-bottom: none; }
+  .doc-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; flex-shrink: 0; }
+  .doc-info { flex: 1; }
+  .doc-type { font-size: 13px; font-weight: 700; }
+  .doc-filename { font-size: 12px; color: var(--color-text-tertiary); }
+  .doc-meta { text-align: right; font-size: 12px; color: var(--color-text-tertiary); margin-right: 8px; }
+  .doc-actions { display: flex; gap: 4px; }
+  
+  /* Audit trail */
+  .audit-row { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .audit-row:last-child { border-bottom: none; }
+  .audit-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; margin-top: 5px; }
+  .audit-ts { font-size: 11px; color: var(--color-text-tertiary); width: 120px; flex-shrink: 0; }
+  .audit-actor { font-size: 11px; color: var(--color-text-tertiary); width: 90px; flex-shrink: 0; }
+  .audit-desc { font-size: 12px; color: var(--color-text-secondary); }
+  
+  /* Vendor management cards */
+  .vendor-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-primary); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+  .vendor-card-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; }
+  .vendor-card-header:hover { background: var(--color-background-secondary); }
+  .vendor-card-info { flex: 1; }
+  .vendor-card-name { font-size: 13px; font-weight: 500; }
+  .vendor-card-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .vendor-card-actions { display: flex; gap: 6px; align-items: center; }
+  .chevron { font-size: 11px; color: var(--color-text-tertiary); transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+  .vendor-card-body { padding: 0 16px 12px; }
+  
+  /* Document chips */
+  .doc-chip { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+  .doc-chip-present { background: var(--color-background-success); color: var(--color-text-success); border: 0.5px solid #a7d9bb; }
+  .doc-chip-missing { background: transparent; color: var(--color-text-tertiary); border: 0.5px solid var(--color-border-primary); }
+  
+  /* APOB form */
+  .form-card { max-width: 580px; margin: 0 auto; background: var(--color-background-primary); border: 0.5px solid var(--color-border-primary); border-radius: 10px; padding: 24px; }
+  .form-title { font-size: 15px; font-weight: 500; margin-bottom: 20px; }
+  .form-section { margin-bottom: 20px; }
+  .form-section-title { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 0.5px solid var(--primary-light); }
+  .form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+  .form-row-2 { grid-template-columns: 1fr 1fr; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }
+  .form-label span.req { color: var(--danger); }
+  .form-input { padding: 7px 10px; border: 0.5px solid var(--color-border-primary); border-radius: 6px; font-size: 13px; outline: none; background: var(--color-background-primary); color: var(--color-text-primary); width: 100%; }
+  .form-input:focus { border-color: var(--primary); }
+  .form-input.readonly { background: var(--color-background-secondary); color: var(--color-text-tertiary); cursor: not-allowed; }
+  .form-input.error { border-color: var(--danger); }
+  .form-error { font-size: 11px; color: var(--danger); }
+  .form-info { font-size: 11px; color: var(--color-text-success); background: var(--color-background-success); padding: 6px 9px; border-radius: 5px; border: 0.5px solid #a7d9bb; margin-top: 4px; }
+  .file-upload { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 0.5px solid var(--color-border-primary); border-radius: 6px; background: var(--color-background-secondary); cursor: pointer; font-size: 12px; color: var(--color-text-secondary); }
+  .file-upload input { display: none; }
+  .form-footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; border-top: 0.5px solid var(--color-border-tertiary); margin-top: 8px; }
+  
+  /* Modal */
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+  .modal { background: var(--color-background-primary); border-radius: 10px; padding: 24px; width: 560px; max-width: 95vw; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.18); }
+  .modal-title { font-size: 15px; font-weight: 500; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-close { cursor: pointer; font-size: 18px; color: var(--color-text-tertiary); line-height: 1; }
+  .modal-close:hover { color: var(--color-text-primary); }
+  .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 16px; border-top: 0.5px solid var(--color-border-tertiary); margin-top: 12px; }
+  
+  /* Validation table */
+  .validation-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
+  .validation-table th { padding: 6px 8px; background: var(--color-background-secondary); text-align: left; font-weight: 600; color: var(--color-text-tertiary); border-bottom: 0.5px solid var(--color-border-primary); }
+  .validation-table td { padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .validation-table tr:last-child td { border-bottom: none; }
+  .row-valid { color: var(--color-text-success); }
+  .row-error { color: var(--danger); }
+  
+  /* Toggle */
+  .toggle { display: flex; align-items: center; gap: 6px; }
+  .toggle-switch { width: 36px; height: 20px; background: #ccc; border-radius: 10px; position: relative; cursor: pointer; transition: background 0.2s; }
+  .toggle-switch.on { background: var(--success); }
+  .toggle-knob { width: 16px; height: 16px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch.on .toggle-knob { left: 18px; }
+  
+  /* Empty state */
+  .empty-state { text-align: center; padding: 28px; color: var(--color-text-tertiary); font-size: 13px; }
+  .empty-state .info-icon { font-size: 22px; margin-bottom: 8px; display: block; }
+  
+  /* Pagination */
+  .pagination { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 12px; }
+  .page-btn { width: 28px; height: 28px; border-radius: 5px; border: 0.5px solid var(--color-border-primary); background: var(--color-background-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: var(--color-text-secondary); }
+  .page-btn:hover { background: var(--color-background-secondary); }
+  .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--color-text-primary); color: white; padding: 10px 16px; border-radius: 7px; font-size: 13px; z-index: 2000; opacity: 0; transform: translateY(8px); transition: all 0.3s; pointer-events: none; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+  
+  /* Monospace */
+  .mono { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; }
+  
+  /* Tab panels */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  
+  /* Sub tab panels */
+  .sub-tab-panel { display: none; }
+  .sub-tab-panel.active { display: block; }
+  
+  /* CSV steps */
+  .csv-step { margin-bottom: 16px; }
+  .csv-step-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--color-text-secondary); }
+  .csv-link { color: var(--primary); cursor: pointer; font-size: 13px; text-decoration: underline; }
+  
+  /* Bank masked */
+  .bank-masked { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; color: var(--color-text-secondary); }
+  
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-border-primary); border-radius: 3px; }
+  
+  /* Panel row */
+  .panel-row { display: flex; align-items: center; gap: 6px; padding: 6px 0; }
+  
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .section-header-title { font-size: 13px; font-weight: 600; }
+  
+  /* Approval panel */
+  .approval-section { background: var(--color-background-secondary); border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+  .approval-section-title { font-size: 12px; font-weight: 600; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px; }
+  .approval-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; }
+  .approval-field { display: flex; flex-direction: column; gap: 2px; }
+  .approval-field-label { font-size: 11px; color: var(--color-text-tertiary); }
+  .approval-field-value { font-size: 13px; font-weight: 500; }
+  
+  .inline-panel-row { background: transparent; }
+  .inline-panel-row:hover { background: transparent !important; }
+  .inline-panel-cell { padding: 0 !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <span>⚡ FirstClub</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item">
+        <div class="nav-icon">🏠</div> Dashboard
+      </div>
+      <div class="nav-item active">
+        <div class="nav-icon" style="background:var(--primary-light);">👥</div> Vendor Management
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">📦</div> Purchase Orders
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">🏭</div> Warehouses
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">📊</div> Reports
+      </div>
+      <div class="nav-item">
+        <div class="nav-icon">⚙️</div> Settings
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-icon">👥</div>
+      <div class="page-header-text">
+        <h1>Vendor Management</h1>
+        <p>Manage vendors, locations, invoices &amp; documents</p>
+      </div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <div class="tab-item active" onclick="switchTab('vendors', this)">Vendors</div>
+      <div class="tab-item" onclick="switchTab('locations', this)">Locations</div>
+      <div class="tab-item" onclick="switchTab('vendormgmt', this)">Vendor Management</div>
+      <div class="tab-item" onclick="switchTab('apob', this)">APOB</div>
+      <div class="tab-item" onclick="switchTab('invoices', this)">Invoices</div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- VENDORS TAB -->
+      <div class="tab-panel active" id="tab-vendors">
+        <div class="toolbar">
+          <input type="text" class="search-input" placeholder="Search vendors…" oninput="filterVendors(this.value)">
+          <select class="filter-select" onchange="filterVendorsByStatus(this.value)">
+            <option>All statuses</option>
+            <option>Verified</option>
+            <option>Active</option>
+            <option>Inactive</option>
+            <option>Blacklisted</option>
+            <option>Onboarding</option>
+            <option>Created</option>
+            <option>Unverified</option>
+          </select>
+          <button class="btn btn-outline" onclick="triggerApprovalFlow('deactivate')">Deactivate Selected</button>
+          <button class="btn btn-outline" onclick="triggerApprovalFlow('activate')">Activate Selected</button>
+          <button class="btn btn-teal" onclick="openBulkImportModal()">⬆ Bulk Import</button>
+          <button class="btn btn-outline" onclick="showToast('CSV downloaded successfully', 'success')">↓ Export CSV</button>
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-primary" onclick="showToast('Vendor creation wizard opened', 'success')">+ Create Vendor</button>
+        </div>
+
+        <div class="table-wrapper">
+          <table id="vendors-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" onchange="toggleAllVendors(this)"></th>
+                <th>Name</th>
+                <th>Code</th>
+                <th>ID</th>
+                <th>Contact Person</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="vendors-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination">
+          <div class="page-btn">‹</div>
+          <div class="page-btn active">1</div>
+          <div class="page-btn">2</div>
+          <div class="page-btn">3</div>
+          <div class="page-btn">›</div>
+        </div>
+      </div>
+
+      <!-- LOCATIONS TAB -->
+      <div class="tab-panel" id="tab-locations">
+        <div class="toolbar">
+          <input type="text" class="search-input" placeholder="Search locations…">
+          <select class="filter-select">
+            <option>All vendors</option>
+            <option>Agro Fresh Farms</option>
+            <option>Spice Route Traders</option>
+            <option>Dairy Best Pvt Ltd</option>
+          </select>
+          <select class="filter-select">
+            <option>All states</option>
+            <option>Maharashtra</option>
+            <option>Karnataka</option>
+            <option>Tamil Nadu</option>
+            <option>Delhi</option>
+            <option>Gujarat</option>
+          </select>
+          <button class="btn btn-outline" onclick="showToast('CSV exported', 'success')">↓ Export CSV</button>
+          <div class="toolbar-spacer"></div>
+          <button class="btn btn-primary" onclick="showToast('Add location form opened', 'success')">+ Add Location</button>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Location ID</th>
+                <th>Vendor</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Address</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="locations-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- VENDOR MANAGEMENT TAB -->
+      <div class="tab-panel" id="tab-vendormgmt">
+        <div class="toolbar">
+          <input type="text" class="search-input" placeholder="Search by vendor, code, or GSTIN…">
+          <select class="filter-select">
+            <option>All types</option>
+            <option>PPOB</option>
+            <option>APOB</option>
+          </select>
+          <select class="filter-select">
+            <option>All states</option>
+            <option>Maharashtra</option>
+            <option>Karnataka</option>
+            <option>Tamil Nadu</option>
+          </select>
+          <select class="filter-select">
+            <option>All statuses</option>
+            <option>Active</option>
+            <option>Pending approval</option>
+            <option>Inactive</option>
+            <option>Rejected</option>
+          </select>
+          <button class="btn btn-outline" onclick="showToast('CSV exported', 'success')">↓ Export CSV</button>
+        </div>
+        <div id="vendor-mgmt-cards"></div>
+      </div>
+
+      <!-- APOB TAB -->
+      <div class="tab-panel" id="tab-apob">
+        <div class="form-card">
+          <div class="form-title">Create New APOB</div>
+
+          <div class="form-section">
+            <div class="form-section-title">1 — Vendor</div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label">Vendor Name <span class="req">*</span></label>
+                <select class="form-input" id="apob-vendor" onchange="onVendorSelect(this)">
+                  <option value="">Select vendor…</option>
+                  <option value="VEN000001">Agro Fresh Farms (VEN000001)</option>
+                  <option value="VEN000002">Spice Route Traders (VEN000002)</option>
+                  <option value="VEN000003">Dairy Best Pvt Ltd (VEN000003)</option>
+                  <option value="VEN000004">Green Valley Foods (VEN000004)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Vendor Code</label>
+                <input type="text" class="form-input readonly" id="apob-vendor-code" readonly placeholder="Auto-filled">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">2 — Location</div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label">State <span class="req">*</span></label>
+                <select class="form-input" id="apob-state" onchange="onStateSelect(this)">
+                  <option value="">Select state…</option>
+                  <option>Maharashtra</option>
+                  <option>Karnataka</option>
+                  <option>Tamil Nadu</option>
+                  <option>Delhi</option>
+                  <option>Gujarat</option>
+                  <option>Rajasthan</option>
+                  <option>Uttar Pradesh</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">City <span class="req">*</span></label>
+                <select class="form-input" id="apob-city" onchange="onCitySelect(this)">
+                  <option value="">Select state first…</option>
+                </select>
+              </div>
+            </div>
+            <div id="apob-autofill-notice" style="display:none" class="form-info">ℹ Details auto-populated from existing record. Verify before saving.</div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">3 — Billing Entity</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Billing Entity Name <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-billing-name" placeholder="Legal entity name">
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label">Billing GSTIN <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-gstin" placeholder="15-char GSTIN" maxlength="15" onblur="validateGSTIN(this)">
+                <div class="form-error" id="apob-gstin-error"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">FSSAI Number</label>
+                <input type="text" class="form-input" id="apob-fssai" placeholder="14-digit FSSAI (optional)" maxlength="14" onblur="validateFSSAI(this)">
+                <div class="form-error" id="apob-fssai-error"></div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Billing Complete Address <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-address" placeholder="Full billing address">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">4 — Bank Account</div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label">Beneficiary Name <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-benef" placeholder="As on bank records">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Account Number <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-account" placeholder="Bank account number">
+              </div>
+            </div>
+            <div class="form-row form-row-2">
+              <div class="form-group">
+                <label class="form-label">Bank IFSC <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-ifsc" placeholder="e.g. HDFC0001234" maxlength="11" onblur="validateIFSC(this)">
+                <div class="form-error" id="apob-ifsc-error"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Bank Name <span class="req">*</span></label>
+                <input type="text" class="form-input" id="apob-bank" placeholder="Bank name">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Branch Name / Address</label>
+                <input type="text" class="form-input" id="apob-branch" placeholder="Branch name or address (optional)">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">5 — Documents (PDF only)</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">GST Certificate <span class="req">*</span></label>
+                <div class="file-upload" onclick="triggerFileUpload('apob-gst-file')">
+                  <input type="file" id="apob-gst-file" accept=".pdf" onchange="onFileSelect(this, 'apob-gst-label')">
+                  <span>📎 Choose File</span>
+                  <span id="apob-gst-label" style="color:var(--color-text-tertiary)">No file chosen</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">FSSAI Certificate <span style="color:var(--color-text-tertiary);font-size:11px">(required if FSSAI entered)</span></label>
+                <div class="file-upload" onclick="triggerFileUpload('apob-fssai-file')">
+                  <input type="file" id="apob-fssai-file" accept=".pdf" onchange="onFileSelect(this, 'apob-fssai-label')">
+                  <span>📎 Choose File</span>
+                  <span id="apob-fssai-label" style="color:var(--color-text-tertiary)">No file chosen</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Cancelled Cheque <span class="req">*</span></label>
+                <div class="file-upload" onclick="triggerFileUpload('apob-cheque-file')">
+                  <input type="file" id="apob-cheque-file" accept=".pdf" onchange="onFileSelect(this, 'apob-cheque-label')">
+                  <span>📎 Choose File</span>
+                  <span id="apob-cheque-label" style="color:var(--color-text-tertiary)">No file chosen</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-footer">
+            <button class="btn btn-outline" onclick="switchTab('vendors', document.querySelector('.tab-item'))">Cancel</button>
+            <button class="btn btn-teal" onclick="openBulkUploadCSVModal()">⬆ Bulk Upload CSV</button>
+            <button class="btn btn-primary" id="submit-apob-btn" onclick="submitAPOB()">Submit for Approval</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVOICES TAB -->
+      <div class="tab-panel" id="tab-invoices">
+        <div class="empty-state">
+          <span class="info-icon">📄</span>
+          Invoice management — no changes in this release. Existing functionality preserved.
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- Bulk Import Modal -->
+<div class="modal-overlay" id="bulk-import-modal" style="display:none" onclick="closeModalOnOverlay(event, 'bulk-import-modal')">
+  <div class="modal">
+    <div class="modal-title">
+      Bulk Import Vendors
+      <span class="modal-close" onclick="closeModal('bulk-import-modal')">✕</span>
+    </div>
+    <div class="csv-step">
+      <div class="csv-step-title">Step 1 — Download Template</div>
+      <a class="csv-link" onclick="showToast('Template downloaded', 'success')">↓ Download CSV template</a>
+    </div>
+    <div class="csv-step">
+      <div class="csv-step-title">Step 2 — Upload CSV File</div>
+      <div class="file-upload" onclick="triggerFileUpload('bulk-vendor-file')">
+        <input type="file" id="bulk-vendor-file" accept=".csv" onchange="onBulkVendorUpload(this)">
+        <span>📎 Choose CSV File</span>
+        <span id="bulk-vendor-label" style="color:var(--color-text-tertiary)">No file chosen</span>
+      </div>
+    </div>
+    <div id="bulk-vendor-validation" style="display:none">
+      <div class="csv-step-title">Step 3 — Validation Summary</div>
+      <table class="validation-table">
+        <thead><tr><th>Row</th><th>Vendor Name</th><th>Status</th><th>Message</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>Fresh Greens Co</td><td class="row-valid">✓ Valid</td><td>—</td></tr>
+          <tr><td>3</td><td>Grain Masters</td><td class="row-valid">✓ Valid</td><td>—</td></tr>
+          <tr><td>4</td><td>Invalid Vendor</td><td class="row-error">✗ Error</td><td>Vendor code is required</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('bulk-import-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="showToast('2 vendors imported successfully', 'success'); closeModal('bulk-import-modal')">Proceed with Valid Rows</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk Upload CSV (APOB) Modal -->
+<div class="modal-overlay" id="bulk-apob-modal" style="display:none" onclick="closeModalOnOverlay(event, 'bulk-apob-modal')">
+  <div class="modal">
+    <div class="modal-title">
+      Bulk Upload APOBs
+      <span class="modal-close" onclick="closeModal('bulk-apob-modal')">✕</span>
+    </div>
+    <div class="csv-step">
+      <div class="csv-step-title">Step 1 — Download Template</div>
+      <a class="csv-link" onclick="showToast('APOB template downloaded', 'success')">↓ Download APOB CSV template</a>
+      <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:5px">Columns: vendor_id, vendor_code, state, city, billing_entity_name, billing_gstin, billing_address, fssai_number, bank_beneficiary_name, bank_account_number, bank_ifsc, bank_name, bank_branch_name</div>
+    </div>
+    <div class="csv-step">
+      <div class="csv-step-title">Step 2 — Upload CSV File</div>
+      <div class="file-upload" onclick="triggerFileUpload('bulk-apob-file')">
+        <input type="file" id="bulk-apob-file" accept=".csv" onchange="onBulkAPOBUpload(this)">
+        <span>📎 Choose CSV File</span>
+        <span id="bulk-apob-label" style="color:var(--color-text-tertiary)">No file chosen</span>
+      </div>
+    </div>
+    <div id="bulk-apob-validation" style="display:none">
+      <div class="csv-step-title">Step 3 — Validation Summary</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px">
+        <span class="badge badge-green">✓ 3 valid rows</span>
+        <span class="badge badge-red">✗ 1 error row</span>
+      </div>
+      <table class="validation-table">
+        <thead><tr><th>Row</th><th>Vendor</th><th>State</th><th>Status</th><th>Message</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>VEN000001</td><td>Maharashtra</td><td class="row-valid">✓ Valid</td><td>—</td></tr>
+          <tr><td>3</td><td>VEN000002</td><td>Karnataka</td><td class="row-valid">✓ Valid</td><td>—</td></tr>
+          <tr><td>4</td><td>VEN000003</td><td>Tamil Nadu</td><td class="row-valid">✓ Valid</td><td>—</td></tr>
+          <tr><td>5</td><td>VEN999</td><td>Delhi</td><td class="row-error">✗ Error</td><td>Vendor ID VEN999 does not exist</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('bulk-apob-modal')">Cancel and Fix Errors</button>
+      <button class="btn btn-primary" onclick="showToast('3 APOBs submitted for approval', 'success'); closeModal('bulk-apob-modal')">Proceed with Valid Rows</button>
+    </div>
+  </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal-overlay" id="approval-modal" style="display:none" onclick="closeModalOnOverlay(event, 'approval-modal')">
+  <div class="modal">
+    <div class="modal-title">
+      <span>APOB Approval — <span id="approval-state-label"></span></span>
+      <span class="modal-close" onclick="closeModal('approval-modal')">✕</span>
+    </div>
+    <div class="approval-section">
+      <div class="approval-section-title">Billing Details</div>
+      <div class="approval-field-grid">
+        <div class="approval-field"><div class="approval-field-label">Vendor</div><div class="approval-field-value" id="app-vendor">Agro Fresh Farms</div></div>
+        <div class="approval-field"><div class="approval-field-label">State / City</div><div class="approval-field-value" id="app-state">Maharashtra — Mumbai</div></div>
+        <div class="approval-field"><div class="approval-field-label">Billing Entity</div><div class="approval-field-value" id="app-entity">Agro Fresh Farms MH Branch</div></div>
+        <div class="approval-field"><div class="approval-field-label">GSTIN</div><div class="approval-field-value mono" id="app-gstin">27AABCA1234F1ZA</div></div>
+        <div class="approval-field"><div class="approval-field-label">Bank</div><div class="approval-field-value" id="app-bank">HDFC ****4521</div></div>
+        <div class="approval-field"><div class="approval-field-label">FSSAI</div><div class="approval-field-value" id="app-fssai">10012345678901</div></div>
+      </div>
+    </div>
+    <div class="approval-section">
+      <div class="approval-section-title">Uploaded Documents</div>
+      <div id="approval-docs"></div>
+    </div>
+    <div id="approval-warning" style="display:none" class="form-info" style="background:var(--color-background-warning);color:var(--color-text-warning)">⚠ Mandatory documents missing — cannot approve</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Rejection Reason (required if rejecting)</label>
+      <input type="text" class="form-input" id="rejection-reason" placeholder="Enter rejection reason…">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('approval-modal')">Cancel</button>
+      <button class="btn btn-danger" onclick="rejectAPOB()">✕ Reject</button>
+      <button class="btn btn-primary" id="approve-btn" onclick="approveAPOB()">✓ Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal-overlay" id="status-modal" style="display:none" onclick="closeModalOnOverlay(event, 'status-modal')">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title">
+      Update Vendor Status
+      <span class="modal-close" onclick="closeModal('status-modal')">✕</span>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">New Status</label>
+      <select class="form-input" id="new-status-select">
+        <option>Created</option>
+        <option>Onboarding</option>
+        <option>Active</option>
+        <option>Inactive</option>
+        <option>Blacklisted</option>
+        <option>Verified</option>
+        <option>Unverified</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">Reason (optional)</label>
+      <input type="text" class="form-input" placeholder="Reason for status change…">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('status-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmStatusUpdate()">Update Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DATA ====================
+const vendors = [
+  { id: 'V001', vendor_id: 'VEN000001', name: 'Agro Fresh Farms', code: 'VEN000001', contact: 'Rajesh Kumar', email: 'rajesh@agrofresh.com', phone: '+91 98765 43210', status: 'VERIFIED', pan: 'AABCA1234F', gstin: '27AABCA1234F1ZA', type: 'Supplier', category: 'Fresh Produce', address: '123, APMC Market, Vashi, Navi Mumbai, Maharashtra - 400703', created: 'Jan 10, 2024', updated: 'Mar 15, 2024', active: true },
+  { id: 'V002', vendor_id: 'VEN000002', name: 'Spice Route Traders', code: 'VEN000002', contact: 'Priya Sharma', email: 'priya@spiceroute.com', phone: '+91 87654 32109', status: 'ACTIVE', pan: 'BCDEF5678G', gstin: '29BCDEF5678G1ZB', type: 'Distributor', category: 'Spices & Condiments', address: '45, Chickpet, Bengaluru, Karnataka - 560053', created: 'Feb 05, 2024', updated: 'Mar 20, 2024', active: true },
+  { id: 'V003', vendor_id: 'VEN000003', name: 'Dairy Best Pvt Ltd', code: 'VEN000003', contact: 'Amit Patel', email: 'amit@dairybest.com', phone: '+91 76543 21098', status: 'ONBOARDING', pan: 'CDEFG6789H', gstin: '24CDEFG6789H1ZC', type: 'Manufacturer', category: 'Dairy Products', address: '78, GIDC Industrial Area, Anand, Gujarat - 388001', created: 'Mar 01, 2024', updated: 'Mar 25, 2024', active: false },
+  { id: 'V004', vendor_id: 'VEN000004', name: 'Green Valley Foods', code: 'VEN000004', contact: 'Sunita Reddy', email: 'sunita@greenvalley.com', phone: '+91 65432 10987', status: 'INACTIVE', pan: 'DEFGH7890I', gstin: '33DEFGH7890I1ZD', type: 'Supplier', category: 'Organic Foods', address: '12, Anna Nagar, Chennai, Tamil Nadu - 600040', created: 'Jan 20, 2024', updated: 'Feb 28, 2024', active: false },
+  { id: 'V005', vendor_id: 'VEN000005', name: 'Mumbai Masala House', code: 'VEN000005', contact: 'Kiran Joshi', email: 'kiran@mumbaimasala.com', phone: '+91 54321 09876', status: 'BLACKLISTED', pan: 'EFGHI8901J', gstin: '27EFGHI8901J1ZE', type: 'Trader', category: 'Ready-to-Eat', address: '56, Crawford Market, Mumbai, Maharashtra - 400001', created: 'Dec 15, 2023', updated: 'Mar 10, 2024', active: false },
+  { id: 'V006', vendor_id: 'VEN000006', name: 'Northern Grains Corp', code: 'VEN000006', contact: 'Vikram Singh', email: 'vikram@northerngrains.com', phone: '+91 43210 98765', status: 'CREATED', pan: 'FGHIJ9012K', gstin: '07FGHIJ9012K1ZF', type: 'Manufacturer', category: 'Grains & Cereals', address: '34, Mandi Road, Hapur, Uttar Pradesh - 245101', created: 'Mar 28, 2024', updated: 'Mar 28, 2024', active: false },
+];
+
+const locations = [
+  { id: 'LOC001', vendor: 'Agro Fresh Farms', vendorCode: 'VEN000001', city: 'Mumbai', state: 'Maharashtra', address: '123, APMC Market, Vashi, Navi Mumbai', contact: '+91 98765 43210', status: 'Active' },
+  { id: 'LOC002', vendor: 'Agro Fresh Farms', vendorCode: 'VEN000001', city: 'Pune', state: 'Maharashtra', address: '45, Gultekdi Market Yard, Pune', contact: '+91 98765 43211', status: 'Active' },
+  { id: 'LOC003', vendor: 'Spice Route Traders', vendorCode: 'VEN000002', city: 'Bengaluru', state: 'Karnataka', address: '45, Chickpet, Bengaluru', contact: '+91 87654 32109', status: 'Active' },
+  { id: 'LOC004', vendor: 'Dairy Best Pvt Ltd', vendorCode: 'VEN000003', city: 'Anand', state: 'Gujarat', address: '78, GIDC Industrial Area, Anand', contact: '+91 76543 21098', status: 'Inactive' },
+  { id: 'LOC005', vendor: 'Green Valley Foods', vendorCode: 'VEN000004', city: 'Chennai', state: 'Tamil Nadu', address: '12, Anna Nagar, Chennai', contact: '+91 65432 10987', status: 'Active' },
+];
+
+const apobRecords = [
+  { id: 'APOB001', vendorId: 'VEN000001', vendorName: 'Agro Fresh Farms', type: 'PPOB', state: 'Maharashtra', city: 'Mumbai', gstin: '27AABCA1234F1ZA', bank: 'HDFC ****4521', docs: { gst: true, fssai: true, cheque: true }, status: 'Active', updated: 'Mar 15, 2024' },
+  { id: 'APOB002', vendorId: 'VEN000001', vendorName: 'Agro Fresh Farms', type: 'APOB', state: 'Karnataka', city: 'Bengaluru', gstin: '29AABCA1234F1ZB', bank: 'ICICI ****7832', docs: { gst: true, fssai: false, cheque: true }, status: 'Pending approval', updated: 'Mar 20, 2024' },
+  { id: 'APOB003', vendorId: 'VEN000002', vendorName: 'Spice Route Traders', type: 'PPOB', state: 'Karnataka', city: 'Bengaluru', gstin: '29BCDEF5678G1ZB', bank: 'SBI ****2341', docs: { gst: true, fssai: true, cheque: true }, status: 'Active', updated: 'Mar 18, 2024' },
+  { id: 'APOB004', vendorId: 'VEN000002', vendorName: 'Spice Route Traders', type: 'APOB', state: 'Tamil Nadu', city: 'Chennai', gstin: '33BCDEF5678G1ZC', bank: 'Axis ****9934', docs: { gst: true, fssai: false, cheque: false }, status: 'Rejected', updated: 'Mar 22, 2024' },
+  { id: 'APOB005', vendorId: 'VEN000003', vendorName: 'Dairy Best Pvt Ltd', type: 'PPOB', state: 'Gujarat', city: 'Anand', gstin: '24CDEFG6789H1ZC', bank: 'PNB ****6612', docs: { gst: false, fssai: false, cheque: true }, status: 'Pending approval', updated: 'Mar 25, 2024' },
+];
+
+const auditLogs = {
+  'V001': [
+    { ts: 'Mar 15, 2024 14:32', actor: 'admin@fc.com', desc: 'Status updated: Active → Verified' },
+    { ts: 'Feb 20, 2024 10:15', actor: 'ops@fc.com', desc: 'GSTIN updated: 27AABCA1234F1ZA → 27AABCA1234F1ZA' },
+    { ts: 'Jan 10, 2024 09:00', actor: 'admin@fc.com', desc: 'Vendor created with status: Onboarding' },
+  ],
+  'V002': [
+    { ts: 'Mar 20, 2024 16:45', actor: 'admin@fc.com', desc: 'APOB created for Karnataka — submitted for approval' },
+    { ts: 'Feb 05, 2024 11:30', actor: 'ops@fc.com', desc: 'Vendor created with status: Active' },
+  ],
+  'V003': [
+    { ts: 'Mar 25, 2024 09:22', actor: 'admin@fc.com', desc: 'Document uploaded: gstn_cert_dairybest.pdf' },
+    { ts: 'Mar 01, 2024 08:45', actor: 'ops@fc.com', desc: 'Vendor created with status: Onboarding' },
+  ],
+  'V004': [
+    { ts: 'Feb 28, 2024 14:10', actor: 'admin@fc.com', desc: 'Status updated: Active → Inactive' },
+    { ts: 'Jan 20, 2024 10:00', actor: 'ops@fc.com', desc: 'Vendor created with status: Active' },
+  ],
+  'V005': [
+    { ts: 'Mar 10, 2024 11:00', actor: 'admin@fc.com', desc: 'Status updated: Active → Blacklisted' },
+    { ts: 'Dec 15, 2023 09:30', actor: 'ops@fc.com', desc: 'Vendor created with status: Active' },
+  ],
+  'V006': [
+    { ts: 'Mar 28, 2024 08:00', actor: 'ops@fc.com', desc: 'Vendor created with status: Created' },
+  ],
+};
+
+const vendorDocs = {
+  'V001': [
+    { type: 'GST Certificate', icon: 'G', color: '#5b5bd6', file: 'gst_cert_agrofresh.pdf', date: 'Jan 15, 2024', status: 'VERIFIED' },
+    { type: 'MSME Certificate', icon: 'M', color: '#3b82f6', file: 'msme_agrofresh.pdf', date: 'Jan 15, 2024', status: 'VERIFIED' },
+    { type: 'FSSAI License', icon: 'F', color: '#1a7f4b', file: 'fssai_agrofresh.pdf', date: 'Feb 01, 2024', status: 'PENDING' },
+  ],
+  'V002': [
+    { type: 'GST Certificate', icon: 'G', color: '#5b5bd6', file: 'gst_cert_spiceroute.pdf', date: 'Feb 10, 2024', status: 'VERIFIED' },
+    { type: 'FSSAI License', icon: 'F', color: '#1a7f4b', file: 'fssai_spiceroute.pdf', date: 'Feb 10, 2024', status: 'REJECTED' },
+  ],
+  'V003': [
+    { type: 'GST Certificate', icon: 'G', color: '#5b5bd6', file: 'gst_cert_dairybest.pdf', date: 'Mar 25, 2024', status: 'PENDING' },
+  ],
+  'V004': [],
+  'V005': [
+    { type: 'GST Certificate', icon: 'G', color: '#5b5bd6', file: 'gst_cert_mumbaimasala.pdf', date: 'Jan 01, 2024', status: 'REJECTED' },
+  ],
+  'V006': [],
+};
+
+const vendorLocations = {
+  'V001': [
+    { name: 'Mumbai — Maharashtra', id: 'LOC001', address: '123, APMC Market, Vashi, Navi Mumbai', status: 'Active' },
+    { name: 'Pune — Maharashtra', id: 'LOC002', address: '45, Gultekdi Market Yard, Pune', status: 'Active' },
+  ],
+  'V002': [
+    { name: 'Bengaluru — Karnataka', id: 'LOC003', address: '45, Chickpet, Bengaluru', status: 'Active' },
+  ],
+  'V003': [
+    { name: 'Anand — Gujarat', id: 'LOC004', address: '78, GIDC Industrial Area, Anand', status: 'Inactive' },
+  ],
+  'V004': [
+    { name: 'Chennai — Tamil Nadu', id: 'LOC005', address: '12, Anna Nagar, Chennai', status: 'Active' },
+  ],
+  'V005': [],
+  'V006': [],
+};
+
+// State → Cities map
+const stateCities = {
+  'Maharashtra': ['Mumbai', 'Pune', 'Nagpur', 'Nashik'],
+  'Karnataka': ['Bengaluru', 'Mysuru', 'Hubli'],
+  'Tamil Nadu': ['Chennai', 'Coimbatore', 'Madurai'],
+  'Delhi': ['New Delhi', 'Dwarka', 'Rohini'],
+  'Gujarat': ['Ahmedabad', 'Anand', 'Surat', 'Vadodara'],
+  'Rajasthan': ['Jaipur', 'Jodhpur', 'Udaipur'],
+  'Uttar Pradesh': ['Lucknow', 'Hapur', 'Kanpur', 'Noida'],
+};
+
+let openPanelId = null;
+
+// ==================== RENDER ====================
+
+function getStatusBadge(status) {
+  const map = {
+    'VERIFIED': 'badge-green', 'ACTIVE': 'badge-green', 'Active': 'badge-green',
+    'INACTIVE': 'badge-grey', 'Inactive': 'badge-grey',
+    'ONBOARDING': 'badge-blue',
+    'CREATED': 'badge-grey',
+    'BLACKLISTED': 'badge-red',
+    'UNVERIFIED': 'badge-amber',
+    'Pending approval': 'badge-amber',
+    'Rejected': 'badge-red',
+    'PENDING': 'badge-amber',
+    'REJECTED': 'badge-red',
+  };
+  return map[status] || 'badge-grey';
+}
+
+function getInitials(name) {
+  const words = name.trim().split(' ');
+  if (words.length >= 2) return words[0][0] + words[1][0];
+  return words[0].substring(0, 2).toUpperCase();
+}
+
+function renderVendors(list) {
+  const tbody = document.getElementById('vendors-tbody');
+  tbody.innerHTML = '';
+  if (!list || list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><span class="info-icon">ⓘ</span>No vendors found</div></td></tr>`;
+    return;
+  }
+  list.forEach(v => {
+    const row = document.createElement('tr');
+    row.id = `vendor-row-${v.id}`;
+    row.innerHTML = `
+      <td><input type="checkbox" class="vendor-cb" data-id="${v.id}"></td>
+      <td><span class="vendor-link" onclick="togglePanel('${v.id}')">${v.name}</span></td>
+      <td><span class="mono">${v.code}</span></td>
+      <td style="color:var(--color-text-tertiary);font-size:12px">${v.id}</td>
+      <td>${v.contact}</td>
+      <td style="font-size:12px">${v.email}</td>
+      <td style="font-size:12px">${v.phone}</td>
+      <td><span class="badge ${getStatusBadge(v.status)}">${v.status}</span></td>
+      <td>
+        <div class="actions-cell">
+          <div class="icon-btn icon-btn-view" title="View" onclick="togglePanel('${v.id}')">👁</div>
+          <div class="icon-btn icon-btn-edit" title="Edit" onclick="showToast('Edit vendor form opened', '')">✎</div>
+          <div class="icon-btn icon-btn-download" title="Download" onclick="showToast('Downloading vendor zip…', 'success')">↓</div>
+          <div class="icon-btn icon-btn-delete" title="Delete" onclick="showToast('Delete confirmation required', 'error')">🗑</div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(row);
+
+    // Panel row
+    const panelRow = document.createElement('tr');
+    panelRow.id = `panel-row-${v.id}`;
+    panelRow.className = 'inline-panel-row';
+    panelRow.style.display = 'none';
+    panelRow.innerHTML = `<td colspan="9" class="inline-panel-cell"><div id="panel-${v.id}" class="inline-panel"></div></td>`;
+    tbody.appendChild(panelRow);
+  });
+}
+
+function togglePanel(id) {
+  if (openPanelId && openPanelId !== id) {
+    document.getElementById(`panel-row-${openPanelId}`).style.display = 'none';
+    openPanelId = null;
+  }
+  const panelRow = document.getElementById(`panel-row-${id}`);
+  if (panelRow.style.display === 'none') {
+    panelRow.style.display = '';
+    renderPanel(id);
+    openPanelId = id;
+  } else {
+    panelRow.style.display = 'none';
+    openPanelId = null;
+  }
+}
+
+function renderPanel(id) {
+  const v = vendors.find(x => x.id === id);
+  const panel = document.getElementById(`panel-${id}`);
+  const statuses = ['Created', 'Onboarding', 'Active', 'Inactive', 'Blacklisted', 'Verified', 'Unverified'];
+  const currentStatus = v.status.charAt(0).toUpperCase() + v.status.slice(1).toLowerCase();
+
+  panel.innerHTML = `
+    <div class="panel-header">
+      <div class="avatar">${getInitials(v.name)}</div>
+      <div class="panel-header-info">
+        <div class="panel-vendor-name">${v.name}</div>
+        <div class="panel-vendor-code">${v.code}</div>
+      </div>
+      <div class="panel-header-actions">
+        <button class="btn btn-primary btn-sm" onclick="showToast('Update vendor form opened', 'success')">Update Vendor</button>
+        <button class="btn btn-success btn-sm" onclick="openStatusModal()">Update Status</button>
+        <div class="icon-btn icon-btn-edit" onclick="document.getElementById('panel-row-${id}').style.display='none'; openPanelId=null;" style="margin-left:4px" title="Close">✕</div>
+      </div>
+    </div>
+
+    <div class="field-grid">
+      <div class="field-group"><div class="field-label">Vendor Name</div><div class="field-value">${v.name}</div></div>
+      <div class="field-group"><div class="field-label">Vendor Code</div><div class="field-value mono">${v.code}</div></div>
+      <div class="field-group"><div class="field-label">Contact Person</div><div class="field-value">${v.contact}</div></div>
+      <div class="field-group"><div class="field-label">Email</div><div class="field-value">${v.email}</div></div>
+      <div class="field-group"><div class="field-label">Phone</div><div class="field-value">${v.phone}</div></div>
+      <div class="field-group"><div class="field-label">Active</div><div class="field-value">
+        <div class="toggle"><div class="toggle-switch ${v.active ? 'on' : ''}" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div></div>
+      </div></div>
+      <div class="field-group"><div class="field-label">PAN Number</div><div class="field-value mono">${v.pan}</div></div>
+      <div class="field-group"><div class="field-label">GSTIN</div><div class="field-value mono">${v.gstin}</div></div>
+      <div class="field-group"><div class="field-label">Vendor Type</div><div class="field-value">${v.type}</div></div>
+      <div class="field-group"><div class="field-label">Product Category</div><div class="field-value">${v.category}</div></div>
+      <div class="field-group full-width"><div class="field-label">Address</div><div class="field-value">${v.address}</div></div>
+      <div class="field-group"><div class="field-label">Created At</div><div class="field-value" style="color:var(--color-text-tertiary)">${v.created}</div></div>
+      <div class="field-group"><div class="field-label">Updated At</div><div class="field-value" style="color:var(--color-text-tertiary)">${v.updated}</div></div>
+    </div>
+
+    <div class="lifecycle">
+      ${statuses.map((s, i) => `
+        ${i > 0 ? '<span class="lifecycle-arrow">→</span>' : ''}
+        <span class="lifecycle-pill ${s.toUpperCase() === v.status || s === currentStatus ? 'current' : ''}">${s}</span>
+      `).join('')}
+    </div>
+
+    <div class="sub-tab-bar" id="subtabs-${id}">
+      <div class="sub-tab active" onclick="switchSubTab('${id}', 'locations', this)">Locations</div>
+      <div class="sub-tab" onclick="switchSubTab('${id}', 'documents', this)">Documents</div>
+      <div class="sub-tab" onclick="switchSubTab('${id}', 'trade', this)">Trade Agreements</div>
+      <div class="sub-tab" onclick="switchSubTab('${id}', 'audit', this)">Audit Trail</div>
+    </div>
+
+    <div id="sub-locations-${id}" class="sub-tab-panel active">${renderLocationsPanel(id)}</div>
+    <div id="sub-documents-${id}" class="sub-tab-panel">${renderDocumentsPanel(id)}</div>
+    <div id="sub-trade-${id}" class="sub-tab-panel"><div class="empty-state"><span class="info-icon">ⓘ</span>Trade agreements — existing functionality, no changes in this release.</div></div>
+    <div id="sub-audit-${id}" class="sub-tab-panel">${renderAuditPanel(id)}</div>
+  `;
+}
+
+function renderLocationsPanel(id) {
+  const locs = vendorLocations[id] || [];
+  let html = `<div class="section-header"><span class="section-header-title">Vendor Locations</span><button class="btn btn-primary btn-sm" onclick="showToast('Add location form opened', 'success')">+ Add Location</button></div>`;
+  if (locs.length === 0) {
+    return html + `<div class="empty-state"><span class="info-icon">ⓘ</span>No locations found</div>`;
+  }
+  html += locs.map(l => `
+    <div class="location-row">
+      <div class="location-dot"></div>
+      <div class="location-info">
+        <div class="location-name">${l.name}</div>
+        <div class="location-sub">${l.id} · ${l.address} · <span class="badge ${l.status === 'Active' ? 'badge-green' : 'badge-grey'}" style="padding:1px 6px;font-size:10px">${l.status}</span></div>
+      </div>
+      <div class="icon-btn icon-btn-edit" onclick="showToast('Edit location form opened', '')">✎</div>
+    </div>
+  `).join('');
+  return html;
+}
+
+function renderDocumentsPanel(id) {
+  const docs = vendorDocs[id] || [];
+  let html = `<div class="section-header"><span class="section-header-title">Vendor Documents</span><button class="btn btn-primary btn-sm" onclick="showToast('Upload document form opened', 'success')">Upload Document</button></div>`;
+  if (docs.length === 0) {
+    return html + `<div class="empty-state"><span class="info-icon">ⓘ</span>No documents uploaded</div>`;
+  }
+  html += docs.map(d => `
+    <div class="doc-row">
+      <div class="doc-icon" style="background:${d.color}">${d.icon}</div>
+      <div class="doc-info">
+        <div class="doc-type">${d.type}</div>
+        <div class="doc-filename">${d.file}</div>
+      </div>
+      <div class="doc-meta">${d.date}</div>
+      <span class="badge ${d.status === 'VERIFIED' ? 'badge-green' : d.status === 'PENDING' ? 'badge-amber' : 'badge-red'}">${d.status}</span>
+      <div class="doc-actions">
+        <div class="icon-btn icon-btn-view" title="View" onclick="showToast('Opening ${d.file} in new tab…', '')">👁</div>
+        <div class="icon-btn icon-btn-download" title="Download" onclick="showToast('Downloading ${d.file}…', 'success')">↓</div>
+      </div>
+    </div>
+  `).join('');
+  return html;
+}
+
+function renderAuditPanel(id) {
+  const logs = auditLogs[id] || [];
+  let html = `<div style="font-size:13px;font-weight:600;margin-bottom:10px">Audit Trail</div>`;
+  if (logs.length === 0) {
+    return html + `<div class="empty-state"><span class="info-icon">ⓘ</span>No audit entries yet</div>`;
+  }
+  html += logs.map(l => `
+    <div class="audit-row">
+      <div class="audit-dot"></div>
+      <div class="audit-ts">${l.ts}</div>
+      <div class="audit-actor">${l.actor}</div>
+      <div class="audit-desc">${l.desc}</div>
+    </div>
+  `).join('');
+  return html;
+}
+
+function switchSubTab(vendorId, tab, el) {
+  const bar = document.getElementById(`subtabs-${vendorId}`);
+  bar.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  ['locations', 'documents', 'trade', 'audit'].forEach(t => {
+    const panel = document.getElementById(`sub-${t}-${vendorId}`);
+    if (panel) panel.classList.toggle('active', t === tab);
+  });
+}
+
+function renderLocations() {
+  const tbody = document.getElementById('locations-tbody');
+  tbody.innerHTML = '';
+  locations.forEach(l => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="mono">${l.id}</span></td>
+      <td>${l.vendor}</td>
+      <td>${l.city}</td>
+      <td>${l.state}</td>
+      <td style="font-size:12px;color:var(--color-text-secondary)">${l.address}</td>
+      <td style="font-size:12px">${l.contact}</td>
+      <td><span class="badge ${l.status === 'Active' ? 'badge-green' : 'badge-grey'}">${l.status}</span></td>
+      <td>
+        <div class="actions-cell">
+          <div class="icon-btn icon-btn-view" onclick="showToast('Opening location detail…', '')">👁</div>
+          <div class="icon-btn icon-btn-edit" onclick="showToast('Edit location opened', '')">✎</div>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderVendorMgmt() {
+  const container = document.getElementById('vendor-mgmt-cards');
+  container.innerHTML = '';
+  const grouped = {};
+  apobRecords.forEach(r => {
+    if (!grouped[r.vendorId]) grouped[r.vendorId] = { name: r.vendorName, records: [] };
+    grouped[r.vendorId].records.push(r);
+  });
+
+  Object.entries(grouped).forEach(([vId, data]) => {
+    const card = document.createElement('div');
+    card.className = 'vendor-card';
+    card.innerHTML = `
+      <div class="vendor-card-header" onclick="toggleCard('${vId}')">
+        <div class="avatar" style="width:32px;height:32px;font-size:12px">${getInitials(data.name)}</div>
+        <div class="vendor-card-info">
+          <div class="vendor-card-name">${data.name}</div>
+          <div class="vendor-card-meta">${vId} · ${data.records.length} billing record${data.records.length !== 1 ? 's' : ''}</div>
+        </div>
+        <div class="vendor-card-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-primary" style="height:26px;padding:0 10px;font-size:12px" onclick="goToAPOB('${vId}')">+ Add APOB</button>
+        </div>
+        <span class="chevron open" id="chevron-${vId}">▼</span>
+      </div>
+      <div class="vendor-card-body" id="card-body-${vId}">
+        <table style="width:100%">
+          <thead>
+            <tr>
+              <th>Type</th><th>State</th><th>City</th><th>GSTIN</th><th>Bank</th><th>Documents</th><th>Status</th><th>Last Updated</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${data.records.map(r => `
+              <tr>
+                <td><span class="badge ${r.type === 'PPOB' ? 'badge-blue' : 'badge-purple'}">${r.type}</span></td>
+                <td>${r.state}</td>
+                <td style="font-weight:500">${r.city}</td>
+                <td><span class="mono">${r.gstin}</span></td>
+                <td><span class="bank-masked">${r.bank}</span></td>
+                <td>
+                  <div style="display:flex;gap:4px">
+                    <span class="doc-chip ${r.docs.gst ? 'doc-chip-present' : 'doc-chip-missing'}">GST</span>
+                    <span class="doc-chip ${r.docs.fssai ? 'doc-chip-present' : 'doc-chip-missing'}">FSSAI</span>
+                    <span class="doc-chip ${r.docs.cheque ? 'doc-chip-present' : 'doc-chip-missing'}">CHEQUE</span>
+                  </div>
+                </td>
+                <td><span class="badge ${getStatusBadge(r.status)}">${r.status}</span></td>
+                <td style="color:var(--color-text-tertiary);font-size:12px">${r.updated}</td>
+                <td>
+                  <div class="actions-cell">
+                    <div class="icon-btn icon-btn-view" title="View / Approve" onclick="openApprovalModal('${r.id}')">👁</div>
+                    <div class="icon-btn icon-btn-download" title="Download docs" onclick="showToast('Downloading documents zip…', 'success')">↓</div>
+                    <div class="icon-btn icon-btn-edit" title="Edit" onclick="showToast('APOB edit coming in Phase 2', '')">✎</div>
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function toggleCard(id) {
+  const body = document.getElementById(`card-body-${id}`);
+  const chevron = document.getElementById(`chevron-${id}`);
+  const visible = body.style.display !== 'none';
+  body.style.display = visible ? 'none' : '';
+  chevron.classList.toggle('open', !visible);
+}
+
+function goToAPOB(vendorId) {
+  switchTab('apob', document.querySelectorAll('.tab-item')[3]);
+  setTimeout(() => {
+    const sel = document.getElementById('apob-vendor');
+    const opt = [...sel.options].find(o => o.value === vendorId);
+    if (opt) { sel.value = vendorId; onVendorSelect(sel); }
+  }, 100);
+}
+
+// ==================== FILTERING ====================
+function filterVendors(q) {
+  const filtered = vendors.filter(v =>
+    v.name.toLowerCase().includes(q.toLowerCase()) ||
+    v.code.toLowerCase().includes(q.toLowerCase())
+  );
+  renderVendors(filtered);
+}
+
+function filterVendorsByStatus(status) {
+  if (status === 'All statuses') { renderVendors(vendors); return; }
+  const filtered = vendors.filter(v => v.status.toUpperCase() === status.toUpperCase());
+  renderVendors(filtered);
+}
+
+function toggleAllVendors(cb) {
+  document.querySelectorAll('.vendor-cb').forEach(c => c.checked = cb.checked);
+}
+
+// ==================== APOB FORM ====================
+function onVendorSelect(sel) {
+  const codeMap = { 'VEN000001': 'VEN000001', 'VEN000002': 'VEN000002', 'VEN000003': 'VEN000003', 'VEN000004': 'VEN000004' };
+  document.getElementById('apob-vendor-code').value = codeMap[sel.value] || '';
+}
+
+function onStateSelect(sel) {
+  const citySelect = document.getElementById('apob-city');
+  const cities = stateCities[sel.value] || [];
+  citySelect.innerHTML = cities.length
+    ? '<option value="">Select city…</option>' + cities.map(c => `<option>${c}</option>`).join('')
+    : '<option value="">No cities available</option>';
+  document.getElementById('apob-autofill-notice').style.display = 'none';
+}
+
+function onCitySelect(sel) {
+  const state = document.getElementById('apob-state').value;
+  const vendor = document.getElementById('apob-vendor').value;
+  const notice = document.getElementById('apob-autofill-notice');
+  if (vendor && state && sel.value) {
+    const existing = apobRecords.find(r => r.vendorId === vendor && r.state === state && r.status === 'Active');
+    if (existing) {
+      document.getElementById('apob-gstin').value = existing.gstin;
+      document.getElementById('apob-benef').value = existing.vendorName + ' ' + state;
+      notice.style.display = '';
+      notice.textContent = `ℹ Details auto-populated from existing ${state} record. Verify before saving.`;
+    } else {
+      notice.style.display = 'none';
+    }
+  }
+}
+
+function validateGSTIN(el) {
+  const err = document.getElementById('apob-gstin-error');
+  if (el.value && el.value.length !== 15) {
+    el.classList.add('error'); err.textContent = 'GSTIN must be 15 characters.';
+  } else { el.classList.remove('error'); err.textContent = ''; }
+}
+
+function validateFSSAI(el) {
+  const err = document.getElementById('apob-fssai-error');
+  if (el.value && (el.value.length !== 14 || !/^\d{14}$/.test(el.value))) {
+    el.classList.add('error'); err.textContent = 'FSSAI number must be 14 digits.';
+  } else { el.classList.remove('error'); err.textContent = ''; }
+}
+
+function validateIFSC(el) {
+  const err = document.getElementById('apob-ifsc-error');
+  const re = /^[A-Z]{4}0[A-Z0-9]{6}$/;
+  if (el.value && !re.test(el.value)) {
+    el.classList.add('error'); err.textContent = 'Invalid IFSC format.';
+  } else { el.classList.remove('error'); err.textContent = ''; }
+}
+
+function submitAPOB() {
+  const vendor = document.getElementById('apob-vendor').value;
+  const state = document.getElementById('apob-state').value;
+  const city = document.getElementById('apob-city').value;
+  const billingName = document.getElementById('apob-billing-name').value;
+  const gstin = document.getElementById('apob-gstin').value;
+  const address = document.getElementById('apob-address').value;
+  const benef = document.getElementById('apob-benef').value;
+  const account = document.getElementById('apob-account').value;
+  const ifsc = document.getElementById('apob-ifsc').value;
+  const bank = document.getElementById('apob-bank').value;
+  const gstFile = document.getElementById('apob-gst-file').files[0];
+  const chequeFile = document.getElementById('apob-cheque-file').files[0];
+
+  if (!vendor || !state || !city || !billingName || !gstin || !address || !benef || !account || !ifsc || !bank || !gstFile || !chequeFile) {
+    showToast('Please fill all required fields and upload mandatory documents.', 'error');
+    return;
+  }
+  if (gstin.length !== 15) { showToast('GSTIN must be 15 characters.', 'error'); return; }
+
+  showToast('APOB submitted for approval successfully!', 'success');
+  // Reset form
+  ['apob-vendor','apob-state','apob-city'].forEach(id => { const el = document.getElementById(id); if(el.tagName==='SELECT') el.selectedIndex=0; });
+  ['apob-vendor-code','apob-billing-name','apob-gstin','apob-fssai','apob-address','apob-benef','apob-account','apob-ifsc','apob-bank','apob-branch'].forEach(id => { document.getElementById(id).value=''; });
+  ['apob-gst-label','apob-fssai-label','apob-cheque-label'].forEach(id => { document.getElementById(id).textContent='No file chosen'; });
+  document.getElementById('apob-autofill-notice').style.display='none';
+}
+
+// ==================== FILE UPLOAD ====================
+function triggerFileUpload(id) { document.getElementById(id).click(); }
+
+function onFileSelect(input, labelId) {
+  const label = document.getElementById(labelId);
+  label.textContent = input.files[0] ? input.files[0].name : 'No file chosen';
+  label.style.color = input.files[0] ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)';
+}
+
+function onBulkVendorUpload(input) {
+  document.getElementById('bulk-vendor-label').textContent = input.files[0] ? input.files[0].name : 'No file chosen';
+  if (input.files[0]) document.getElementById('bulk-vendor-validation').style.display = '';
+}
+
+function onBulkAPOBUpload(input) {
+  document.getElementById('bulk-apob-label').textContent = input.files[0] ? input.files[0].name : 'No file chosen';
+  if (input.files[0]) document.getElementById('bulk-apob-validation').style.display = '';
+}
+
+// ==================== APPROVAL ====================
+function openApprovalModal(apobId) {
+  const rec = apobRecords.find(r => r.id === apobId);
+  if (!rec) return;
+  document.getElementById('approval-state-label').textContent = `${rec.vendorName} — ${rec.state}`;
+  document.getElementById('app-vendor').textContent = rec.vendorName;
+  document.getElementById('app-state').textContent = `${rec.state} — ${rec.city}`;
+  document.getElementById('app-entity').textContent = rec.vendorName + ' ' + rec.state + ' Branch';
+  document.getElementById('app-gstin').textContent = rec.gstin;
+  document.getElementById('app-bank').textContent = rec.bank;
+  document.getElementById('app-fssai').textContent = rec.docs.fssai ? '10012345678901' : 'Not provided';
+
+  const docsDiv = document.getElementById('approval-docs');
+  const docList = [
+    { label: 'GST Certificate', present: rec.docs.gst },
+    { label: 'FSSAI Certificate', present: rec.docs.fssai },
+    { label: 'Cancelled Cheque', present: rec.docs.cheque },
+  ];
+  docsDiv.innerHTML = docList.map(d => `
+    <div class="doc-row">
+      <div class="doc-icon" style="background:${d.present ? 'var(--success)' : '#ccc'}">${d.present ? '✓' : '✗'}</div>
+      <div class="doc-info"><div class="doc-type">${d.label}</div>
+      <div class="doc-filename">${d.present ? `${d.label.toLowerCase().replace(/ /g,'_')}.pdf` : 'Not uploaded'}</div></div>
+      ${d.present ? `
+        <div class="doc-actions">
+          <div class="icon-btn icon-btn-view" onclick="showToast('Opening document…', '')">👁</div>
+          <div class="icon-btn icon-btn-download" onclick="showToast('Downloading…', 'success')">↓</div>
+        </div>` : '<span class="badge badge-amber">Missing</span>'}
+    </div>
+  `).join('');
+
+  const canApprove = rec.docs.gst && rec.docs.cheque;
+  document.getElementById('approve-btn').disabled = !canApprove;
+  document.getElementById('approval-warning').style.display = canApprove ? 'none' : '';
+  openModal('approval-modal');
+}
+
+function approveAPOB() {
+  showToast('APOB approved successfully!', 'success');
+  closeModal('approval-modal');
+}
+
+function rejectAPOB() {
+  const reason = document.getElementById('rejection-reason').value;
+  if (!reason.trim()) { showToast('Please enter a rejection reason.', 'error'); return; }
+  showToast('APOB rejected.', 'error');
+  closeModal('approval-modal');
+}
+
+// ==================== STATUS MODAL ====================
+function openStatusModal() { openModal('status-modal'); }
+
+function confirmStatusUpdate() {
+  const newStatus = document.getElementById('new-status-select').value;
+  showToast(`Status updated to ${newStatus}`, 'success');
+  closeModal('status-modal');
+}
+
+// ==================== APPROVAL FLOW ====================
+function triggerApprovalFlow(type) {
+  const checked = [...document.querySelectorAll('.vendor-cb:checked')];
+  if (checked.length === 0) { showToast('No vendors selected.', 'error'); return; }
+  showToast(`${type === 'activate' ? 'Activation' : 'Deactivation'} request submitted for ${checked.length} vendor(s).`, 'success');
+}
+
+// ==================== TAB SWITCHING ====================
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (el) el.classList.add('active');
+  else {
+    const tabs = { vendors: 0, locations: 1, vendormgmt: 2, apob: 3, invoices: 4 };
+    const idx = tabs[tab];
+    if (idx !== undefined) document.querySelectorAll('.tab-item')[idx].classList.add('active');
+  }
+}
+
+// ==================== MODALS ====================
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function closeModalOnOverlay(e, id) { if (e.target === e.currentTarget) closeModal(id); }
+function openBulkImportModal() { openModal('bulk-import-modal'); }
+function openBulkUploadCSVModal() { openModal('bulk-apob-modal'); }
+
+// ==================== TOAST ====================
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast ${type}`;
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ==================== INIT ====================
+document.addEventListener('DOMContentLoaded', () => {
+  renderVendors(vendors);
+  renderLocations();
+  renderVendorMgmt();
+});
+</script>
+</body>
+</html>
