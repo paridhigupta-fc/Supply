@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physical Combo SKU – WMS Prototype</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f5f4f0; color: #1a1a1a; font-size: 14px; }
+  :root {
+    --purple: #534AB7; --purple-light: #EEEDFE; --green: #3B6D11; --green-light: #EAF3DE;
+    --amber: #854F0B; --amber-light: #FAEEDA; --red: #A32D2D; --red-light: #FCEBEB;
+    --blue: #185FA5; --blue-light: #E6F1FB; --gray: #5F5E5A; --gray-light: #F1EFE8;
+    --border: #e8e8e8; --bg: #ffffff; --sidebar: #fafaf8;
+  }
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar { width: 220px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+  .sidebar-logo { padding: 20px 16px 14px; border-bottom: 1px solid var(--border); }
+  .sidebar-logo .brand { font-size: 13px; font-weight: 600; color: var(--purple); }
+  .sidebar-logo .sub { font-size: 11px; color: #999; margin-top: 2px; }
+  .sidebar-nav { flex: 1; overflow-y: auto; padding: 10px 0; }
+  .nav-section { padding: 6px 14px 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: #bbb; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; font-size: 13px; color: #555; cursor: pointer; border-radius: 0; transition: background .1s; border-left: 2px solid transparent; }
+  .nav-item:hover { background: #f0efe9; color: #222; }
+  .nav-item.active { background: var(--purple-light); color: var(--purple); font-weight: 500; border-left-color: var(--purple); }
+  .nav-item .icon { width: 16px; text-align: center; font-size: 14px; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .topbar { height: 52px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0; }
+  .topbar-title { font-size: 15px; font-weight: 500; flex: 1; }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; }
+  .content { flex: 1; overflow-y: auto; padding: 24px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all .15s; }
+  .btn-primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .btn-primary:hover { background: #4540a0; }
+  .btn-secondary { background: #fff; color: #333; border-color: var(--border); }
+  .btn-secondary:hover { background: #f5f5f5; }
+  .btn-danger { background: var(--red-light); color: var(--red); border-color: #f0c0c0; }
+  .btn-danger:hover { background: #f5d5d5; }
+  .btn-success { background: var(--green-light); color: var(--green); border-color: #b8dca0; }
+  .btn-amber { background: var(--amber-light); color: var(--amber); border-color: #f0c888; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; }
+  .badge-purple { background: var(--purple-light); color: var(--purple); }
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-amber { background: var(--amber-light); color: var(--amber); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-blue { background: var(--blue-light); color: var(--blue); }
+  .badge-gray { background: var(--gray-light); color: var(--gray); }
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-size: 14px; font-weight: 600; }
+  .card-body { padding: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .4px; white-space: nowrap; }
+  td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafaf8; }
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 12px; font-weight: 500; color: #555; margin-bottom: 6px; }
+  .form-control { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; outline: none; background: #fff; transition: border .15s; }
+  .form-control:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(83,74,183,.08); }
+  select.form-control { cursor: pointer; }
+  .form-hint { font-size: 11px; color: #999; margin-top: 4px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
+  .modal-lg { max-width: 760px; }
+  .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h2 { font-size: 16px; font-weight: 600; }
+  .modal-close { background: none; border: none; font-size: 20px; color: #999; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+  .tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 9px 18px; font-size: 13px; font-weight: 500; color: #888; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all .15s; }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .stat-card { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px 20px; }
+  .stat-card .stat-label { font-size: 11px; color: #999; font-weight: 500; text-transform: uppercase; letter-spacing: .4px; }
+  .stat-card .stat-value { font-size: 26px; font-weight: 600; color: #111; margin-top: 4px; }
+  .stat-card .stat-sub { font-size: 12px; color: #888; margin-top: 2px; }
+  .timeline { position: relative; }
+  .timeline-step { display: flex; gap: 12px; margin-bottom: 0; }
+  .timeline-left { display: flex; flex-direction: column; align-items: center; }
+  .timeline-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .timeline-line { width: 2px; flex: 1; min-height: 20px; background: var(--border); margin: 2px 0; }
+  .timeline-content { padding-bottom: 16px; flex: 1; padding-top: 4px; }
+  .timeline-content .step-title { font-size: 13px; font-weight: 500; }
+  .timeline-content .step-desc { font-size: 12px; color: #888; margin-top: 3px; }
+  .alert { padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; }
+  .alert-amber { background: var(--amber-light); color: var(--amber); border: 1px solid #f0c888; }
+  .alert-green { background: var(--green-light); color: var(--green); border: 1px solid #b8dca0; }
+  .alert-red { background: var(--red-light); color: var(--red); border: 1px solid #f0c0c0; }
+  .alert-blue { background: var(--blue-light); color: var(--blue); border: 1px solid #b8d4f0; }
+  .progress-bar { height: 6px; background: #f0f0f0; border-radius: 100px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 100px; transition: width .3s; }
+  .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 100px; font-size: 12px; border: 1px solid var(--border); background: #fff; }
+  .flow-bar { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 12px 0; }
+  .flow-step { padding: 5px 12px; font-size: 11px; font-weight: 500; border-radius: 4px; }
+  .flow-arrow { color: #ccc; font-size: 14px; margin: 0 2px; }
+  .section-heading { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: #bbb; margin-bottom: 10px; }
+  .info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { width: 180px; color: #888; flex-shrink: 0; }
+  .info-value { color: #222; font-weight: 500; }
+  .tooltip { position: relative; }
+  .child-sku-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; background: #fafaf8; }
+  .child-sku-row .sku-name { flex: 1; font-size: 13px; font-weight: 500; }
+  .child-sku-row .sku-qty { width: 80px; }
+  .child-sku-row .sku-gst { font-size: 12px; color: #888; width: 60px; }
+  .remove-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 16px; padding: 2px 6px; }
+  .remove-btn:hover { color: var(--red); }
+  .picker-app { background: #1a1a2e; border-radius: 16px; padding: 20px; color: #fff; max-width: 360px; margin: 0 auto; }
+  .picker-app h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .picker-task { background: #16213e; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .picker-task .sku { font-size: 13px; font-weight: 500; color: #e0e0e0; }
+  .picker-task .bin { font-size: 12px; color: #888; margin-top: 2px; }
+  .picker-task .qty { font-size: 20px; font-weight: 700; color: #a78bfa; margin-top: 8px; }
+  .scan-input { background: #0f3460; border: 1px solid #3a3a6e; border-radius: 8px; padding: 10px 14px; width: 100%; color: #fff; font-size: 14px; outline: none; }
+  .scan-input::placeholder { color: #666; }
+  input[type=range] { width: 100%; accent-color: var(--purple); }
+  .conversion-record { background: #f8f7ff; border: 1px solid #d8d4f5; border-radius: 10px; padding: 16px; margin-top: 12px; }
+  .conversion-record .cr-title { font-size: 12px; font-weight: 600; color: var(--purple); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+  .step-done { opacity: .5; }
+  .highlight-box { background: var(--purple-light); border: 1px solid #c8c4f0; border-radius: 8px; padding: 12px 16px; margin-top: 12px; }
+  .nlc-formula { font-family: monospace; font-size: 13px; background: #f5f4f0; padding: 12px 16px; border-radius: 8px; color: #333; border: 1px solid var(--border); }
+  .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f0f0f0; color: #555; margin: 2px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">Firstclub WMS</div>
+      <div class="sub">Physical Combo SKU v3.0</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Catalog</div>
+      <div class="nav-item active" onclick="showPage('combo-catalog')">
+        <span class="icon">📦</span> Combo Catalog
+      </div>
+      <div class="nav-item" onclick="showPage('assembly-planning')">
+        <span class="icon">📋</span> Assembly Planning
+      </div>
+      <div class="nav-section">Operations</div>
+      <div class="nav-item" onclick="showPage('build-requests')">
+        <span class="icon">🔨</span> Build Requests
+      </div>
+      <div class="nav-item" onclick="showPage('tl-approvals')">
+        <span class="icon">✅</span> TL Approvals
+        <span class="badge badge-amber" style="margin-left:auto;font-size:10px">2</span>
+      </div>
+      <div class="nav-item" onclick="showPage('picking')">
+        <span class="icon">🛒</span> Picking
+      </div>
+      <div class="nav-item" onclick="showPage('packing')">
+        <span class="icon">📫</span> Packing
+      </div>
+      <div class="nav-item" onclick="showPage('putaway')">
+        <span class="icon">🏷️</span> Putaway
+      </div>
+      <div class="nav-section">Reverse</div>
+      <div class="nav-item" onclick="showPage('debundle')">
+        <span class="icon">↩️</span> De-bundling
+      </div>
+      <div class="nav-section">Records</div>
+      <div class="nav-item" onclick="showPage('conversion-records')">
+        <span class="icon">📄</span> Conversion Records
+      </div>
+      <div class="nav-item" onclick="showPage('stock-take')">
+        <span class="icon">🔍</span> Stock Take
+      </div>
+      <div class="nav-item" onclick="showPage('reports')">
+        <span class="icon">📊</span> Reports
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Combo Catalog</div>
+      <div class="topbar-actions">
+        <span class="badge badge-purple">v3.0</span>
+        <span class="badge badge-green">Active</span>
+        <div style="width:1px;height:20px;background:var(--border);margin:0 4px"></div>
+        <span style="font-size:12px;color:#999">WH: Delhi-DC1</span>
+      </div>
+    </div>
+    <div class="content" id="main-content">
+      <!-- Pages injected here -->
+    </div>
+  </div>
+</div>
+
+<!-- Modals Container -->
+<div id="modals"></div>
+
+<script>
+// ============================================================
+// DATA STORE
+// ============================================================
+const store = {
+  combos: [
+    { id: 'SKU-C001', name: 'Breakfast Bundle', status: 'ACTIVE', gst: 18, mrp: 299,
+      children: [
+        { id: 'SKU-001', name: 'Oats 500g', qty: 1, gst: 5, nlc: 45 },
+        { id: 'SKU-002', name: 'Honey 250g', qty: 1, gst: 12, nlc: 55 },
+        { id: 'SKU-003', name: 'Almonds 100g', qty: 1, gst: 18, nlc: 80 }
+      ],
+      packaging: { id: 'PKG-001', name: 'Gift Box Medium', cost: 12 },
+      indicativeNlc: 192, inventory: 45 },
+    { id: 'SKU-C002', name: 'Healthy Snack Pack', status: 'ACTIVE', gst: 12, mrp: 199,
+      children: [
+        { id: 'SKU-004', name: 'Trail Mix 200g', qty: 2, gst: 5, nlc: 35 },
+        { id: 'SKU-005', name: 'Dark Chocolate 100g', qty: 1, gst: 12, nlc: 40 }
+      ],
+      packaging: { id: 'PKG-002', name: 'Kraft Box Small', cost: 8 },
+      indicativeNlc: 118, inventory: 0 },
+    { id: 'SKU-C003', name: 'Festival Gift Set', status: 'INACTIVE', gst: 18, mrp: 599,
+      children: [
+        { id: 'SKU-006', name: 'Premium Tea 100g', qty: 1, gst: 5, nlc: 120 },
+        { id: 'SKU-007', name: 'Biscuits 300g', qty: 2, gst: 18, nlc: 45 },
+        { id: 'SKU-008', name: 'Jam 200g', qty: 1, gst: 12, nlc: 60 }
+      ],
+      packaging: { id: 'PKG-003', name: 'Premium Gift Box', cost: 35 },
+      indicativeNlc: 305, inventory: 12 },
+    { id: 'SKU-C004', name: 'Protein Starter Kit', status: 'DRAFT', gst: null, mrp: 499,
+      children: [],
+      packaging: null,
+      indicativeNlc: null, inventory: 0 }
+  ],
+  buildRequests: [
+    { id: 'BR-2025-001', comboId: 'SKU-C001', comboName: 'Breakfast Bundle', warehouse: 'Delhi-DC1',
+      requestedQty: 50, approvedQty: 45, status: 'COMPLETED', raisedBy: 'Priya S.', tlApprovedBy: 'Rahul M.',
+      createdAt: '2025-04-02', completedAt: '2025-04-03', pickedQty: 46, packedQty: 45, finalNlc: 195.50 },
+    { id: 'BR-2025-002', comboId: 'SKU-C001', comboName: 'Breakfast Bundle', warehouse: 'Delhi-DC1',
+      requestedQty: 30, approvedQty: null, status: 'PENDING_APPROVAL', raisedBy: 'Karan T.', tlApprovedBy: null,
+      createdAt: '2025-04-05', completedAt: null, pickedQty: 0, packedQty: 0, finalNlc: null },
+    { id: 'BR-2025-003', comboId: 'SKU-C002', comboName: 'Healthy Snack Pack', warehouse: 'Mumbai-DC2',
+      requestedQty: 100, approvedQty: 80, status: 'PICKING', raisedBy: 'Anita R.', tlApprovedBy: 'Sanjay P.',
+      createdAt: '2025-04-04', completedAt: null, pickedQty: 35, packedQty: 0, finalNlc: null },
+    { id: 'BR-2025-004', comboId: 'SKU-C001', comboName: 'Breakfast Bundle', warehouse: 'Delhi-DC1',
+      requestedQty: 20, approvedQty: null, status: 'PENDING_APPROVAL', raisedBy: 'Meera J.', tlApprovedBy: null,
+      createdAt: '2025-04-05', completedAt: null, pickedQty: 0, packedQty: 0, finalNlc: null }
+  ],
+  conversionRecords: [
+    { id: 'CR-2025-001', brId: 'BR-2025-001', comboId: 'SKU-C001', comboName: 'Breakfast Bundle',
+      parentLotId: 'LOT-C001-2025-04-03', finalQty: 45, requestedQty: 50, approvedQty: 45,
+      pickedQty: 46, packedQty: 45, finalNlc: 195.50, gst: 18, warehouse: 'Delhi-DC1',
+      raisedBy: 'Priya S.', tlApprovedBy: 'Rahul M.', putawayBy: 'Vijay K.',
+      timestamp: '2025-04-03 14:32', stockTakeTaskId: 'ST-2025-001',
+      children: [
+        { skuId: 'SKU-001', name: 'Oats 500g', lotId: 'LOT-001-A', qty: 45, nlc: 45 },
+        { skuId: 'SKU-002', name: 'Honey 250g', lotId: 'LOT-002-B', qty: 45, nlc: 55 },
+        { skuId: 'SKU-003', name: 'Almonds 100g', lotId: 'LOT-003-A', qty: 45, nlc: 80 }
+      ],
+      packaging: { skuId: 'PKG-001', name: 'Gift Box Medium', qty: 45, cost: 12 } }
+  ],
+  debundleRequests: [
+    { id: 'DB-2025-001', comboId: 'SKU-C003', comboName: 'Festival Gift Set', crId: 'CR-OLD-001',
+      qty: 6, status: 'COMPLETED', raisedBy: 'Finance Team', warehouse: 'Delhi-DC1',
+      completedAt: '2025-04-01' }
+  ],
+  childSkus: [
+    { id: 'SKU-001', name: 'Oats 500g', gst: 5, nlc: 45, available: 200, lots: [{ id: 'LOT-001-A', qty: 120, expiry: '2026-01-01' }, { id: 'LOT-001-B', qty: 80, expiry: '2025-12-01' }] },
+    { id: 'SKU-002', name: 'Honey 250g', gst: 12, nlc: 55, available: 180, lots: [{ id: 'LOT-002-B', qty: 180, expiry: '2026-06-01' }] },
+    { id: 'SKU-003', name: 'Almonds 100g', gst: 18, nlc: 80, available: 95, lots: [{ id: 'LOT-003-A', qty: 95, expiry: '2025-11-15' }] },
+    { id: 'SKU-004', name: 'Trail Mix 200g', gst: 5, nlc: 35, available: 300, lots: [{ id: 'LOT-004-A', qty: 300, expiry: '2025-10-01' }] },
+    { id: 'SKU-005', name: 'Dark Chocolate 100g', gst: 12, nlc: 40, available: 150, lots: [{ id: 'LOT-005-A', qty: 150, expiry: '2025-09-15' }] },
+  ],
+  packagingSkus: [
+    { id: 'PKG-001', name: 'Gift Box Medium', available: 500, cost: 12 },
+    { id: 'PKG-002', name: 'Kraft Box Small', available: 800, cost: 8 },
+    { id: 'PKG-003', name: 'Premium Gift Box', available: 200, cost: 35 }
+  ]
+};
+
+let currentPage = 'combo-catalog';
+
+// ============================================================
+// NAV
+// ============================================================
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+  // re-highlight
+  document.querySelectorAll('.nav-item').forEach(el => {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(`'${page}'`)) el.classList.add('active');
+  });
+  const titles = {
+    'combo-catalog': 'Combo Catalog',
+    'assembly-planning': 'Assembly Planning',
+    'build-requests': 'Build Requests',
+    'tl-approvals': 'TL Approvals',
+    'picking': 'Picking',
+    'packing': 'Packing',
+    'putaway': 'Putaway',
+    'debundle': 'De-bundling',
+    'conversion-records': 'Conversion Records',
+    'stock-take': 'Stock Take',
+    'reports': 'Reports'
+  };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  const pages = {
+    'combo-catalog': renderComboCatalog,
+    'assembly-planning': renderAssemblyPlanning,
+    'build-requests': renderBuildRequests,
+    'tl-approvals': renderTLApprovals,
+    'picking': renderPicking,
+    'packing': renderPacking,
+    'putaway': renderPutaway,
+    'debundle': renderDebundle,
+    'conversion-records': renderConversionRecords,
+    'stock-take': renderStockTake,
+    'reports': renderReports
+  };
+  const fn = pages[page];
+  document.getElementById('main-content').innerHTML = fn ? fn() : '<div class="empty-state"><div class="icon">🚧</div><p>Page coming soon</p></div>';
+  if (page === 'picking') initPickingInteractions();
+  if (page === 'packing') initPackingInteractions();
+}
+
+// ============================================================
+// STATUS BADGE
+// ============================================================
+function statusBadge(status) {
+  const map = {
+    'ACTIVE': 'badge-green', 'COMPLETED': 'badge-green', 'CONFIGURED': 'badge-blue',
+    'DRAFT': 'badge-gray', 'INACTIVE': 'badge-amber', 'BLOCKED': 'badge-red',
+    'PENDING_APPROVAL': 'badge-amber', 'RESERVED': 'badge-blue', 'PICKING': 'badge-blue',
+    'PICKED': 'badge-blue', 'PACKING': 'badge-purple', 'PUT_AWAY_IN_PROGRESS': 'badge-purple',
+    'FAILED': 'badge-red', 'CANCELLED': 'badge-red', 'REJECTED': 'badge-red',
+    'IN_PROGRESS': 'badge-blue', 'OPEN': 'badge-amber'
+  };
+  return `<span class="badge ${map[status] || 'badge-gray'}">${status.replace(/_/g,' ')}</span>`;
+}
+
+// ============================================================
+// PAGE: COMBO CATALOG
+// ============================================================
+function renderComboCatalog() {
+  const rows = store.combos.map(c => `
+    <tr>
+      <td><div style="font-weight:500">${c.id}</div><div style="font-size:11px;color:#999">${c.name}</div></td>
+      <td>${statusBadge(c.status)}</td>
+      <td>${c.children.length > 0 ? c.children.map(ch=>`<span class="tag">${ch.name} ×${ch.qty}</span>`).join('') : '<span style="color:#bbb">—</span>'}</td>
+      <td>${c.packaging ? `<span class="tag">${c.packaging.name}</span>` : '<span style="color:#bbb">—</span>'}</td>
+      <td>${c.gst != null ? c.gst + '%' : '—'}</td>
+      <td>${c.indicativeNlc != null ? '₹' + c.indicativeNlc : '—'}</td>
+      <td>${c.inventory > 0 ? `<span style="font-weight:500;color:var(--green)">${c.inventory}</span>` : '0'}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="viewCombo('${c.id}')">View</button>
+          ${c.status === 'ACTIVE' || c.status === 'INACTIVE' ? `<button class="btn btn-secondary btn-sm" onclick="editComboStatus('${c.id}')">Status</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:20px;font-weight:600">Combo SKUs</div>
+        <div style="font-size:12px;color:#999;margin-top:2px">${store.combos.length} combos defined</div>
+      </div>
+      <button class="btn btn-primary" onclick="openCreateCombo()">+ New Combo SKU</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      ${[['ACTIVE',store.combos.filter(c=>c.status==='ACTIVE').length,'badge-green'],['DRAFT',store.combos.filter(c=>c.status==='DRAFT').length,'badge-gray'],['INACTIVE',store.combos.filter(c=>c.status==='INACTIVE').length,'badge-amber'],['BLOCKED',store.combos.filter(c=>c.status==='BLOCKED').length,'badge-red']].map(([s,n,b])=>`
+        <div class="stat-card"><div class="stat-label">${s}</div><div class="stat-value">${n}</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>All Combo SKUs</h3></div>
+      <table><thead><tr><th>SKU</th><th>Status</th><th>Child SKUs</th><th>Packaging</th><th>GST</th><th>Indicative NLC</th><th>Stock</th><th>Actions</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+function viewCombo(id) {
+  const c = store.combos.find(x => x.id === id);
+  if (!c) return;
+  const nlcDetail = c.children.length ? c.children.map(ch => `
+    <div class="info-row"><div class="info-label">${ch.name} ×${ch.qty}</div><div class="info-value">NLC: ₹${ch.nlc} | GST: ${ch.gst}%</div></div>`).join('') : '<div style="color:#bbb;font-size:13px">No children added</div>';
+  openModal(`
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2>${c.id} — ${c.name}</h2>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:10px;margin-bottom:20px">
+          ${statusBadge(c.status)}
+          ${c.gst != null ? `<span class="badge badge-blue">GST ${c.gst}%</span>` : ''}
+          ${c.inventory > 0 ? `<span class="badge badge-green">${c.inventory} in stock</span>` : ''}
+        </div>
+        <div class="grid-2" style="gap:20px">
+          <div>
+            <div class="section-heading">Composition</div>
+            ${nlcDetail}
+            <div class="info-row" style="margin-top:8px"><div class="info-label">Packaging</div><div class="info-value">${c.packaging ? c.packaging.name + ' (₹' + c.packaging.cost + ')' : '—'}</div></div>
+          </div>
+          <div>
+            <div class="section-heading">Cost & Tax</div>
+            <div class="info-row"><div class="info-label">GST Rate</div><div class="info-value">${c.gst != null ? c.gst + '% (max of children)' : '—'}</div></div>
+            <div class="info-row"><div class="info-label">Indicative NLC</div><div class="info-value">${c.indicativeNlc != null ? '₹' + c.indicativeNlc : '—'}</div></div>
+            <div class="info-row"><div class="info-label">MRP</div><div class="info-value">₹${c.mrp}</div></div>
+            <div class="info-row"><div class="info-label">Physical Stock</div><div class="info-value">${c.inventory} units</div></div>
+          </div>
+        </div>
+        ${c.status === 'ACTIVE' ? `<div class="alert alert-blue" style="margin-top:16px"><span>ℹ️</span><span>Composition and GST are frozen. To make changes, move SKU to INACTIVE first.</span></div>` : ''}
+        ${c.status === 'INACTIVE' ? `<div class="alert alert-amber" style="margin-top:16px"><span>⚠️</span><span>SKU is INACTIVE. De-bundling is allowed. New build requests cannot be created.</span></div>` : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        ${c.status === 'ACTIVE' ? `<button class="btn btn-primary" onclick="closeModal();showPage('build-requests')">Create Build Request</button>` : ''}
+      </div>
+    </div>`);
+}
+
+function editComboStatus(id) {
+  const c = store.combos.find(x => x.id === id);
+  const options = {
+    'ACTIVE': ['INACTIVE', 'BLOCKED'],
+    'INACTIVE': ['ACTIVE', 'BLOCKED'],
+    'CONFIGURED': ['ACTIVE']
+  }[c.status] || [];
+  openModal(`
+    <div class="modal">
+      <div class="modal-header"><h2>Change Status — ${c.id}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="alert alert-amber"><span>⚠️</span><span>Status changes affect build requests and inventory promiseability.</span></div>
+        <div class="info-row"><div class="info-label">Current Status</div><div class="info-value">${statusBadge(c.status)}</div></div>
+        <div class="form-group" style="margin-top:16px">
+          <label class="form-label">New Status</label>
+          <select class="form-control" id="new-status">
+            ${options.map(o => `<option value="${o}">${o}</option>`).join('')}
+          </select>
+        </div>
+        ${options.includes('BLOCKED') ? `<div class="alert alert-red"><span>🚫</span><span>BLOCKED is permanent and cannot be reversed.</span></div>` : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="applyStatusChange('${id}')">Apply Change</button>
+      </div>
+    </div>`);
+}
+
+function applyStatusChange(id) {
+  const ns = document.getElementById('new-status').value;
+  const c = store.combos.find(x => x.id === id);
+  c.status = ns;
+  closeModal();
+  showPage('combo-catalog');
+  showToast(`${id} status changed to ${ns}`);
+}
+
+function openCreateCombo() {
+  openModal(`
+    <div class="modal modal-lg">
+      <div class="modal-header"><h2>Create New Combo SKU</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="flow-bar" style="margin-bottom:20px">
+          <div class="flow-step" style="background:var(--purple-light);color:var(--purple)">① DRAFT</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="background:#f0f0f0;color:#999">② CONFIGURED</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step" style="background:#f0f0f0;color:#999">③ ACTIVE</div>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">Combo SKU Name *</label>
+            <input class="form-control" id="new-combo-name" placeholder="e.g. Morning Wellness Kit">
+          </div>
+          <div class="form-group">
+            <label class="form-label">MRP (₹) *</label>
+            <input class="form-control" type="number" id="new-combo-mrp" placeholder="e.g. 499">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Packaging Material *</label>
+          <select class="form-control" id="new-combo-pkg">
+            <option value="">Select packaging SKU</option>
+            ${store.packagingSkus.map(p => `<option value="${p.id}">${p.name} (₹${p.cost}) — ${p.available} available</option>`).join('')}
+          </select>
+          <div class="form-hint">Mandatory — combo cannot proceed to ACTIVE without packaging.</div>
+        </div>
+        <div class="section-heading" style="margin-top:8px">Child SKUs</div>
+        <div id="child-sku-list"></div>
+        <button class="btn btn-secondary btn-sm" onclick="addChildSkuRow()" style="margin-top:8px">+ Add Child SKU</button>
+        <div id="gst-preview" style="margin-top:16px"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveNewCombo()">Create as DRAFT</button>
+      </div>
+    </div>`);
+  addChildSkuRow();
+}
+
+function addChildSkuRow() {
+  const list = document.getElementById('child-sku-list');
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'child-sku-row';
+  div.id = `csr-${idx}`;
+  div.innerHTML = `
+    <select class="form-control sku-qty" style="flex:1" onchange="updateGSTPreview()">
+      <option value="">Select child SKU</option>
+      ${store.childSkus.map(s => `<option value="${s.id}" data-gst="${s.gst}">${s.name} (GST: ${s.gst}%)</option>`).join('')}
+    </select>
+    <input type="number" class="form-control sku-qty" style="width:80px" placeholder="Qty" min="1" value="1">
+    <button class="remove-btn" onclick="this.parentElement.remove();updateGSTPreview()">×</button>`;
+  list.appendChild(div);
+}
+
+function updateGSTPreview() {
+  const rows = document.querySelectorAll('#child-sku-list .child-sku-row');
+  let maxGst = 0;
+  rows.forEach(r => {
+    const sel = r.querySelector('select');
+    if (sel && sel.value) {
+      const opt = sel.querySelector(`option[value="${sel.value}"]`);
+      const gst = parseInt(opt?.getAttribute('data-gst') || 0);
+      maxGst = Math.max(maxGst, gst);
+    }
+  });
+  const preview = document.getElementById('gst-preview');
+  if (preview && rows.length > 0) {
+    preview.innerHTML = `<div class="highlight-box"><span style="font-size:12px;color:var(--purple);font-weight:600">Auto-derived GST: ${maxGst}%</span> <span style="font-size:12px;color:#888">(max of all child SKU GST rates)</span></div>`;
+  }
+}
+
+function saveNewCombo() {
+  const name = document.getElementById('new-combo-name')?.value;
+  if (!name) { showToast('Please enter a combo name', 'error'); return; }
+  const mrp = document.getElementById('new-combo-mrp')?.value;
+  const id = 'SKU-C00' + (store.combos.length + 1);
+  store.combos.push({ id, name, status: 'DRAFT', gst: null, mrp: parseFloat(mrp) || 0, children: [], packaging: null, indicativeNlc: null, inventory: 0 });
+  closeModal();
+  showPage('combo-catalog');
+  showToast(`${id} created as DRAFT`);
+}
+
+// ============================================================
+// PAGE: ASSEMBLY PLANNING
+// ============================================================
+function renderAssemblyPlanning() {
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Assembly Planning</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">Read-only inventory visibility before creating a build request.</div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-body">
+        <div class="grid-2">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Warehouse</label>
+            <select class="form-control" id="plan-wh" onchange="renderPlanResult()">
+              <option>Delhi-DC1</option><option>Mumbai-DC2</option><option>Bangalore-DC3</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Combo SKU</label>
+            <select class="form-control" id="plan-sku" onchange="renderPlanResult()">
+              <option value="">Select combo SKU</option>
+              ${store.combos.filter(c=>c.status==='ACTIVE').map(c=>`<option value="${c.id}">${c.id} — ${c.name}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="plan-result"></div>`;
+}
+
+function renderPlanResult() {
+  const skuId = document.getElementById('plan-sku')?.value;
+  const result = document.getElementById('plan-result');
+  if (!skuId || !result) return;
+  const combo = store.combos.find(c => c.id === skuId);
+  if (!combo) return;
+  let maxCombos = Infinity;
+  let limitingSku = null;
+  combo.children.forEach(ch => {
+    const childData = store.childSkus.find(s => s.id === ch.id);
+    if (childData) {
+      const possible = Math.floor(childData.available / ch.qty);
+      if (possible < maxCombos) { maxCombos = possible; limitingSku = ch.name; }
+    }
+  });
+  const pkgData = store.packagingSkus.find(p => p.id === combo.packaging?.id);
+  if (pkgData) {
+    const pkgPossible = pkgData.available;
+    if (pkgPossible < maxCombos) { maxCombos = pkgPossible; limitingSku = combo.packaging.name + ' (packaging)'; }
+  }
+  if (maxCombos === Infinity) maxCombos = 0;
+
+  result.innerHTML = `
+    <div class="alert alert-blue"><span>ℹ️</span><span>This is read-only. No inventory is reserved at this stage.</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div class="stat-card"><div class="stat-label">Max Possible Combos</div><div class="stat-value" style="color:var(--purple)">${maxCombos}</div></div>
+      <div class="stat-card"><div class="stat-label">Limiting Factor</div><div class="stat-value" style="font-size:16px;margin-top:8px">${limitingSku || '—'}</div></div>
+      <div class="stat-card"><div class="stat-label">Packaging Available</div><div class="stat-value">${pkgData?.available || 0}</div><div class="stat-sub">${combo.packaging?.name || '—'}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>Child SKU Availability (FEFO sorted)</h3></div>
+      <table><thead><tr><th>Child SKU</th><th>Required per Combo</th><th>Lot ID</th><th>Lot Qty</th><th>Expiry</th><th>Max Combos (this lot)</th></tr></thead>
+      <tbody>
+        ${combo.children.map(ch => {
+          const childData = store.childSkus.find(s => s.id === ch.id);
+          return (childData?.lots || []).sort((a,b)=>a.expiry.localeCompare(b.expiry)).map(lot => `
+            <tr>
+              <td><div style="font-weight:500">${ch.name}</div><div style="font-size:11px;color:#999">${ch.id}</div></td>
+              <td>${ch.qty}</td>
+              <td><span class="tag">${lot.id}</span></td>
+              <td>${lot.qty}</td>
+              <td>${lot.expiry}</td>
+              <td><span style="font-weight:500">${Math.floor(lot.qty / ch.qty)}</span></td>
+            </tr>`).join('');
+        }).join('')}
+      </tbody></table>
+    </div>
+    <div style="text-align:right">
+      <button class="btn btn-primary" onclick="closeModal();showPage('build-requests');setTimeout(()=>openCreateBR('${skuId}'),100)">Proceed to Build Request →</button>
+    </div>`;
+}
+
+// ============================================================
+// PAGE: BUILD REQUESTS
+// ============================================================
+function renderBuildRequests() {
+  const rows = store.buildRequests.map(br => `
+    <tr>
+      <td><div style="font-weight:500">${br.id}</div><div style="font-size:11px;color:#999">${br.createdAt}</div></td>
+      <td>${br.comboName}<div style="font-size:11px;color:#999">${br.comboId}</div></td>
+      <td>${br.warehouse}</td>
+      <td>${statusBadge(br.status)}</td>
+      <td>${br.requestedQty}</td>
+      <td>${br.approvedQty != null ? br.approvedQty : '<span style="color:#bbb">Pending</span>'}</td>
+      <td>${br.raisedBy}</td>
+      <td>
+        <button class="btn btn-secondary btn-sm" onclick="viewBR('${br.id}')">View</button>
+      </td>
+    </tr>`).join('');
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:20px;font-weight:600">Build Requests</div>
+        <div style="font-size:12px;color:#999;margin-top:2px">${store.buildRequests.length} total requests</div>
+      </div>
+      <button class="btn btn-primary" onclick="openCreateBR('')">+ New Build Request</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px">
+      ${[['PENDING','PENDING_APPROVAL','amber'],['PICKING','PICKING','blue'],['PACKING','PACKING','purple'],['COMPLETED','COMPLETED','green'],['FAILED','FAILED','red']].map(([l,s,c])=>`
+        <div class="stat-card"><div class="stat-label">${l}</div><div class="stat-value">${store.buildRequests.filter(b=>b.status===s).length}</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>All Build Requests</h3></div>
+      <table><thead><tr><th>ID</th><th>Combo</th><th>Warehouse</th><th>Status</th><th>Requested</th><th>Approved</th><th>Raised By</th><th></th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`;
+}
+
+function openCreateBR(preselect) {
+  openModal(`
+    <div class="modal">
+      <div class="modal-header"><h2>New Build Request</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="alert alert-blue"><span>ℹ️</span><span>No inventory is reserved until TL approves this request.</span></div>
+        <div class="form-group">
+          <label class="form-label">Warehouse *</label>
+          <select class="form-control" id="br-wh"><option>Delhi-DC1</option><option>Mumbai-DC2</option><option>Bangalore-DC3</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Combo SKU *</label>
+          <select class="form-control" id="br-sku" onchange="updateBRMax()">
+            <option value="">Select combo SKU</option>
+            ${store.combos.filter(c=>c.status==='ACTIVE').map(c=>`<option value="${c.id}" ${c.id===preselect?'selected':''}>${c.id} — ${c.name}</option>`).join('')}
+          </select>
+        </div>
+        <div id="br-max-info"></div>
+        <div class="form-group">
+          <label class="form-label">Requested Quantity *</label>
+          <input type="number" class="form-control" id="br-qty" placeholder="Enter quantity" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Context / Reason for TL</label>
+          <input class="form-control" id="br-reason" placeholder="e.g. Festive season campaign, urgent restock">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitBR()">Submit for TL Approval</button>
+      </div>
+    </div>`);
+  if (preselect) setTimeout(updateBRMax, 50);
+}
+
+function updateBRMax() {
+  const skuId = document.getElementById('br-sku')?.value;
+  const info = document.getElementById('br-max-info');
+  if (!skuId || !info) return;
+  const combo = store.combos.find(c => c.id === skuId);
+  if (!combo) return;
+  let maxCombos = 999;
+  combo.children.forEach(ch => {
+    const cd = store.childSkus.find(s => s.id === ch.id);
+    if (cd) maxCombos = Math.min(maxCombos, Math.floor(cd.available / ch.qty));
+  });
+  const pkg = store.packagingSkus.find(p => p.id === combo.packaging?.id);
+  if (pkg) maxCombos = Math.min(maxCombos, pkg.available);
+  info.innerHTML = `<div class="highlight-box" style="margin-bottom:16px"><span style="font-size:13px;font-weight:600;color:var(--purple)">MAX_ALLOWED = ${maxCombos}</span><span style="font-size:12px;color:#888"> based on current inventory</span></div>`;
+}
+
+function submitBR() {
+  const skuId = document.getElementById('br-sku')?.value;
+  const qty = parseInt(document.getElementById('br-qty')?.value);
+  const reason = document.getElementById('br-reason')?.value;
+  if (!skuId || !qty) { showToast('Please fill all required fields', 'error'); return; }
+  const combo = store.combos.find(c => c.id === skuId);
+  const id = 'BR-2025-' + String(store.buildRequests.length + 1).padStart(3,'0');
+  store.buildRequests.unshift({ id, comboId: skuId, comboName: combo.name, warehouse: 'Delhi-DC1',
+    requestedQty: qty, approvedQty: null, status: 'PENDING_APPROVAL', raisedBy: 'Current User',
+    tlApprovedBy: null, createdAt: new Date().toISOString().split('T')[0], completedAt: null,
+    pickedQty: 0, packedQty: 0, finalNlc: null });
+  closeModal();
+  showPage('build-requests');
+  showToast(`${id} submitted for TL approval`);
+}
+
+function viewBR(id) {
+  const br = store.buildRequests.find(x => x.id === id);
+  if (!br) return;
+  const combo = store.combos.find(c => c.id === br.comboId);
+  const steps = [
+    { label: 'CREATED', done: true, active: false },
+    { label: 'PENDING APPROVAL', done: br.status !== 'PENDING_APPROVAL', active: br.status === 'PENDING_APPROVAL' },
+    { label: 'RESERVED', done: !['PENDING_APPROVAL','CREATED'].includes(br.status), active: br.status === 'RESERVED' },
+    { label: 'PICKING', done: ['PICKED','PACKING','PUT_AWAY_IN_PROGRESS','COMPLETED'].includes(br.status), active: br.status === 'PICKING' },
+    { label: 'PACKING', done: ['PUT_AWAY_IN_PROGRESS','COMPLETED'].includes(br.status), active: br.status === 'PACKING' },
+    { label: 'COMPLETED', done: br.status === 'COMPLETED', active: false }
+  ];
+  openModal(`
+    <div class="modal modal-lg">
+      <div class="modal-header"><h2>${br.id}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div style="display:flex;gap:8px;margin-bottom:20px">${statusBadge(br.status)}<span class="badge badge-gray">${br.warehouse}</span></div>
+        <div class="flow-bar" style="margin-bottom:20px">
+          ${steps.map(s=>`<div class="flow-step" style="background:${s.done?'var(--green-light)':s.active?'var(--purple-light)':'#f0f0f0'};color:${s.done?'var(--green)':s.active?'var(--purple)':'#999'}">${s.done?'✓ ':s.active?'● ':''}${s.label}</div><div class="flow-arrow">→</div>`).join('').slice(0,-37)}
+        </div>
+        <div class="grid-2" style="gap:20px">
+          <div>
+            <div class="section-heading">Request Details</div>
+            <div class="info-row"><div class="info-label">Combo SKU</div><div class="info-value">${br.comboName}</div></div>
+            <div class="info-row"><div class="info-label">Requested Qty</div><div class="info-value">${br.requestedQty}</div></div>
+            <div class="info-row"><div class="info-label">TL Approved Qty</div><div class="info-value">${br.approvedQty != null ? br.approvedQty : '<span style="color:#bbb">Pending</span>'}</div></div>
+            <div class="info-row"><div class="info-label">Picked Qty</div><div class="info-value">${br.pickedQty}</div></div>
+            <div class="info-row"><div class="info-label">Packed Qty</div><div class="info-value">${br.packedQty}</div></div>
+          </div>
+          <div>
+            <div class="section-heading">Audit</div>
+            <div class="info-row"><div class="info-label">Raised By</div><div class="info-value">${br.raisedBy}</div></div>
+            <div class="info-row"><div class="info-label">TL Approved By</div><div class="info-value">${br.tlApprovedBy || '—'}</div></div>
+            <div class="info-row"><div class="info-label">Created</div><div class="info-value">${br.createdAt}</div></div>
+            <div class="info-row"><div class="info-label">Completed</div><div class="info-value">${br.completedAt || '—'}</div></div>
+            <div class="info-row"><div class="info-label">Final NLC</div><div class="info-value">${br.finalNlc ? '₹' + br.finalNlc : '—'}</div></div>
+          </div>
+        </div>
+        ${br.requestedQty !== br.approvedQty && br.approvedQty != null ? `<div class="alert alert-amber" style="margin-top:16px"><span>⚠️</span><span>TL approved ${br.approvedQty} units vs requested ${br.requestedQty}. Quantity was reduced.</span></div>` : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        ${br.status === 'PENDING_APPROVAL' ? `<button class="btn btn-danger btn-sm" onclick="cancelBR('${br.id}')">Cancel Request</button>` : ''}
+      </div>
+    </div>`);
+}
+
+function cancelBR(id) {
+  const br = store.buildRequests.find(x => x.id === id);
+  br.status = 'CANCELLED';
+  closeModal();
+  showPage('build-requests');
+  showToast(`${id} cancelled`);
+}
+
+// ============================================================
+// PAGE: TL APPROVALS
+// ============================================================
+function renderTLApprovals() {
+  const pending = store.buildRequests.filter(b => b.status === 'PENDING_APPROVAL');
+  if (pending.length === 0) return `<div class="empty-state"><div class="icon">✅</div><p>No pending approvals</p></div>`;
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">TL Approvals</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">${pending.length} requests awaiting approval</div>
+    </div>
+    <div class="alert alert-amber"><span>⚡</span><span>On approval, inventory will be <strong>atomically validated, reserved</strong>, and a picklist generated. Reservation holds for 12 hours.</span></div>
+    ${pending.map(br => {
+      const combo = store.combos.find(c => c.id === br.comboId);
+      let maxCombos = 999;
+      combo?.children.forEach(ch => {
+        const cd = store.childSkus.find(s => s.id === ch.id);
+        if (cd) maxCombos = Math.min(maxCombos, Math.floor(cd.available / ch.qty));
+      });
+      return `
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <div>
+            <div style="font-size:14px;font-weight:600">${br.id} — ${br.comboName}</div>
+            <div style="font-size:12px;color:#999;margin-top:2px">Raised by ${br.raisedBy} on ${br.createdAt} · ${br.warehouse}</div>
+          </div>
+          ${statusBadge(br.status)}
+        </div>
+        <div class="card-body">
+          <div class="grid-2" style="gap:20px;margin-bottom:16px">
+            <div>
+              <div class="info-row"><div class="info-label">Requested Quantity</div><div class="info-value" style="font-size:18px;font-weight:700">${br.requestedQty}</div></div>
+              <div class="info-row"><div class="info-label">MAX_ALLOWED</div><div class="info-value">${maxCombos} <span style="color:#999;font-size:12px">(current stock)</span></div></div>
+            </div>
+            <div>
+              <div class="section-heading">Child SKU Availability</div>
+              ${combo?.children.map(ch => {
+                const cd = store.childSkus.find(s => s.id === ch.id);
+                const needed = br.requestedQty * ch.qty;
+                const ok = cd && cd.available >= needed;
+                return `<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+                  <span>${ch.name} ×${ch.qty}</span>
+                  <span style="color:${ok?'var(--green)':'var(--red)'}">${cd?.available || 0} avail (need ${needed})</span>
+                </div>`;
+              }).join('')}
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Approve Quantity (max: ${maxCombos})</label>
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="range" min="1" max="${maxCombos}" value="${Math.min(br.requestedQty, maxCombos)}" id="approve-qty-${br.id}" oninput="document.getElementById('aqv-${br.id}').textContent=this.value" style="flex:1">
+              <span id="aqv-${br.id}" style="font-size:18px;font-weight:700;color:var(--purple);min-width:30px">${Math.min(br.requestedQty, maxCombos)}</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">TL Note (optional)</label>
+            <input class="form-control" id="tl-note-${br.id}" placeholder="Add note for Category/Marketing...">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-success" onclick="approveBR('${br.id}')">✓ Approve & Reserve Inventory</button>
+            <button class="btn btn-danger" onclick="rejectBR('${br.id}')">✗ Reject</button>
+          </div>
+        </div>
+      </div>`}).join('')}`;
+}
+
+function approveBR(id) {
+  const br = store.buildRequests.find(x => x.id === id);
+  const approvedQty = parseInt(document.getElementById(`approve-qty-${id}`)?.value);
+  br.approvedQty = approvedQty;
+  br.status = 'PICKING';
+  br.tlApprovedBy = 'TL User';
+  showToast(`${id} approved for ${approvedQty} units. Inventory reserved. Picklist generated.`);
+  showPage('tl-approvals');
+}
+
+function rejectBR(id) {
+  const br = store.buildRequests.find(x => x.id === id);
+  br.status = 'REJECTED';
+  showToast(`${id} rejected. Category/Marketing notified.`, 'error');
+  showPage('tl-approvals');
+}
+
+// ============================================================
+// PAGE: PICKING
+// ============================================================
+function renderPicking() {
+  const active = store.buildRequests.filter(b => b.status === 'PICKING');
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Picking</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">${active.length} build requests in picking</div>
+    </div>
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <div>
+        ${active.length === 0 ? `<div class="empty-state"><div class="icon">🛒</div><p>No active picking tasks</p></div>` :
+        active.map(br => {
+          const combo = store.combos.find(c => c.id === br.comboId);
+          return `
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header">
+              <div><div style="font-weight:600">${br.id}</div><div style="font-size:12px;color:#999">${br.comboName} · ${br.warehouse}</div></div>
+              ${statusBadge(br.status)}
+            </div>
+            <div class="card-body">
+              <div style="margin-bottom:12px">
+                <div style="font-size:12px;color:#888;margin-bottom:6px">Progress</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(br.pickedQty/br.approvedQty*100)}%;background:var(--purple)"></div></div>
+                <div style="font-size:12px;color:#666;margin-top:4px">${br.pickedQty} / ${br.approvedQty} picked</div>
+              </div>
+              <div class="section-heading">Pick List</div>
+              <table><thead><tr><th>SKU</th><th>Lot</th><th>Bin</th><th>Required</th><th>Action</th></tr></thead>
+              <tbody>
+                ${combo?.children.map((ch, idx) => `
+                  <tr id="pick-row-${br.id}-${idx}">
+                    <td><div style="font-weight:500">${ch.name}</div></td>
+                    <td><span class="tag">LOT-00${idx+1}-A</span></td>
+                    <td>BIN-A${String(idx+1).padStart(2,'0')}</td>
+                    <td>${ch.qty * br.approvedQty}</td>
+                    <td>
+                      <button class="btn btn-success btn-sm" onclick="markPicked('${br.id}',${idx})">✓ Picked</button>
+                      <button class="btn btn-amber btn-sm" onclick="markNotFound('${br.id}',${idx})">Not Found</button>
+                    </td>
+                  </tr>`).join('')}
+              </tbody></table>
+              <div style="margin-top:12px">
+                <button class="btn btn-primary" onclick="completePicking('${br.id}')">Confirm Pick Complete</button>
+              </div>
+            </div>
+          </div>`;}).join('')}
+      </div>
+      <div>
+        <div class="picker-app">
+          <h3>📱 Picker App (HHD)</h3>
+          <div style="font-size:12px;color:#888;margin-bottom:14px">Scan bin barcode to confirm picks</div>
+          ${active.length > 0 ? `
+            <div class="picker-task">
+              <div class="sku">${active[0].comboName}</div>
+              <div class="bin">${active[0].id} · ${active[0].warehouse}</div>
+              <div class="qty">${active[0].approvedQty} combos</div>
+            </div>
+            <div style="margin-top:12px">
+              <div style="font-size:12px;color:#aaa;margin-bottom:6px">Scan bin barcode:</div>
+              <input class="scan-input" id="scan-input" placeholder="Scan or type bin ID..." onkeypress="handleScan(event)">
+            </div>
+            <div id="scan-feedback" style="margin-top:10px;font-size:13px"></div>
+            <div style="margin-top:16px;font-size:12px;color:#666;border-top:1px solid #333;padding-top:12px">
+              FEFO Order · Lot IDs unique per expiry date
+            </div>
+          ` : `<div style="color:#888;font-size:13px;text-align:center;padding:20px">No active tasks</div>`}
+        </div>
+      </div>
+    </div>`;
+}
+
+function initPickingInteractions() {}
+
+function markPicked(brId, idx) {
+  const row = document.getElementById(`pick-row-${brId}-${idx}`);
+  if (row) { row.style.background = 'var(--green-light)'; row.cells[4].innerHTML = '<span class="badge badge-green">✓ Picked</span>'; }
+  showToast('Pick confirmed');
+}
+
+function markNotFound(brId, idx) {
+  const row = document.getElementById(`pick-row-${brId}-${idx}`);
+  if (row) { row.style.background = 'var(--red-light)'; row.cells[4].innerHTML = '<span class="badge badge-red">Not Found</span>'; }
+  showToast('Marked as not found — short pick logged', 'warning');
+}
+
+function completePicking(id) {
+  const br = store.buildRequests.find(x => x.id === id);
+  br.pickedQty = br.approvedQty;
+  br.status = 'PACKING';
+  showPage('picking');
+  showToast(`${id} picking complete. Ready for packing.`);
+}
+
+function handleScan(e) {
+  if (e.key === 'Enter') {
+    const val = document.getElementById('scan-input').value;
+    const fb = document.getElementById('scan-feedback');
+    if (fb) { fb.innerHTML = `<span style="color:#86efac">✓ Bin ${val} confirmed. Units allocated.</span>`; }
+    document.getElementById('scan-input').value = '';
+  }
+}
+
+// ============================================================
+// PAGE: PACKING
+// ============================================================
+function renderPacking() {
+  const active = store.buildRequests.filter(b => b.status === 'PACKING');
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Packing & Confirmation</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">${active.length} build requests ready for packing</div>
+    </div>
+    ${active.length === 0 ? `<div class="empty-state"><div class="icon">📫</div><p>No items awaiting packing</p></div>` :
+    active.map(br => {
+      const combo = store.combos.find(c => c.id === br.comboId);
+      return `
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div><div style="font-weight:600">${br.id} — ${br.comboName}</div><div style="font-size:12px;color:#999">${br.warehouse} · Approved: ${br.approvedQty}</div></div>
+          ${statusBadge(br.status)}
+        </div>
+        <div class="card-body">
+          <div class="alert alert-blue"><span>📦</span><span>Scan new SKU barcode on HHD and enter actual packed quantity. Only whole combos allowed.</span></div>
+          <div class="grid-2" style="gap:20px">
+            <div>
+              <div class="form-group">
+                <label class="form-label">Scanned SKU Code</label>
+                <input class="form-control" value="${br.comboId}" readonly style="background:#f5f5f5">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Actual Packed Quantity</label>
+                <input type="number" class="form-control" id="pack-qty-${br.id}" value="${br.approvedQty}" min="0" max="${br.approvedQty}" oninput="updatePackVariance('${br.id}')">
+                <div class="form-hint">Expected: ${br.approvedQty} combos</div>
+              </div>
+              <div id="pack-variance-${br.id}"></div>
+            </div>
+            <div>
+              <div class="section-heading">Pack Contents per Combo</div>
+              ${combo?.children.map(ch => `<div class="info-row"><div class="info-label">${ch.name}</div><div class="info-value">×${ch.qty}</div></div>`).join('')}
+              <div class="info-row"><div class="info-label">${combo?.packaging?.name}</div><div class="info-value">×1 (consumed here)</div></div>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:10px">
+            <button class="btn btn-primary" onclick="confirmPacking('${br.id}')">Confirm Pack & Trigger Stock Take</button>
+          </div>
+        </div>
+      </div>`}).join('')}`;
+}
+
+function initPackingInteractions() {
+  store.buildRequests.filter(b => b.status === 'PACKING').forEach(br => updatePackVariance(br.id));
+}
+
+function updatePackVariance(brId) {
+  const br = store.buildRequests.find(x => x.id === brId);
+  const qty = parseInt(document.getElementById(`pack-qty-${brId}`)?.value) || 0;
+  const variance = document.getElementById(`pack-variance-${brId}`);
+  if (!variance) return;
+  if (qty < br.approvedQty) {
+    const loss = br.approvedQty - qty;
+    variance.innerHTML = `<div class="alert alert-amber"><span>⚠️</span><span>Variance detected: ${loss} units short. Will be recorded as <strong>Yield Loss</strong>.</span></div>`;
+  } else if (qty === br.approvedQty) {
+    variance.innerHTML = `<div class="alert alert-green"><span>✓</span><span>Packed quantity matches approved quantity. No variance.</span></div>`;
+  }
+}
+
+function confirmPacking(id) {
+  const br = store.buildRequests.find(x => x.id === id);
+  const qty = parseInt(document.getElementById(`pack-qty-${id}`)?.value) || 0;
+  if (qty === 0) { openPostPackDisposition(id, br.approvedQty); return; }
+  br.packedQty = qty;
+  br.status = 'PUT_AWAY_IN_PROGRESS';
+  showToast(`Packing confirmed. Stock take auto-triggered warehouse-wide.`);
+  openPostPackDisposition(id, br.approvedQty - qty);
+}
+
+function openPostPackDisposition(brId, leftover) {
+  const br = store.buildRequests.find(x => x.id === brId);
+  const combo = store.combos.find(c => c.id === br.comboId);
+  openModal(`
+    <div class="modal modal-lg">
+      <div class="modal-header"><h2>Post-Pack Disposition</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="alert alert-amber"><span>⚠️</span><span>Both options must be actioned before proceeding to combo putaway.</span></div>
+        <div style="font-size:13px;color:#666;margin-bottom:20px">
+          <strong>${leftover > 0 ? leftover + ' units' : 'All units'}</strong> of child SKUs remain unpacked.
+        </div>
+        <div class="grid-2" style="gap:16px">
+          <div class="card" style="border:2px solid var(--purple-light)">
+            <div class="card-body">
+              <div style="font-weight:600;color:var(--purple);margin-bottom:8px">Option A — New Build Request</div>
+              <div style="font-size:13px;color:#666;margin-bottom:12px">Generate pick list for only the shortfall SKU qty to complete additional combos.</div>
+              ${combo?.children.map(ch => `<div style="font-size:13px;margin-bottom:4px">${ch.name}: need ${leftover * ch.qty} more</div>`).join('')}
+              <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="closeModal();showPage('build-requests')">Initiate New Build Request</button>
+            </div>
+          </div>
+          <div class="card" style="border:2px solid var(--green-light)">
+            <div class="card-body">
+              <div style="font-weight:600;color:var(--green);margin-bottom:8px">Option B — Putaway Remaining</div>
+              <div style="font-size:13px;color:#666;margin-bottom:12px">Return units to available inventory in their original bins.</div>
+              ${combo?.children.map(ch => `<div style="font-size:13px;margin-bottom:4px">${ch.name}: ${leftover * ch.qty} units → BIN-A0${combo.children.indexOf(ch)+1}</div>`).join('')}
+              <button class="btn btn-success btn-sm" style="margin-top:12px" onclick="confirmPutawayRemaining('${brId}')">Return to Inventory</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px;background:#f5f5f5;border-radius:8px;padding:12px">
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">Damaged Unit Handling</div>
+          <div style="font-size:12px;color:#888">Mark damaged units as Yield Loss. Stock take auto-triggered warehouse-wide for affected child SKU.</div>
+        </div>
+      </div>
+    </div>`);
+}
+
+function confirmPutawayRemaining(brId) {
+  closeModal();
+  showToast('Remaining units returned to inventory');
+  showPage('putaway');
+}
+
+// ============================================================
+// PAGE: PUTAWAY
+// ============================================================
+function renderPutaway() {
+  const ready = store.buildRequests.filter(b => b.status === 'PUT_AWAY_IN_PROGRESS');
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Putaway</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">Putaway confirmation triggers Conversion Record creation and NLC computation</div>
+    </div>
+    <div class="alert alert-blue"><span>⚡</span><span>Putaway is <strong>atomic</strong>: Child SKU deduction + Parent inventory creation + Final NLC + Conversion Record all succeed or rollback together.</span></div>
+    ${ready.length === 0 ? `<div class="empty-state"><div class="icon">🏷️</div><p>No items awaiting putaway</p></div>` :
+    ready.map(br => {
+      const combo = store.combos.find(c => c.id === br.comboId);
+      const nlc = combo ? combo.children.reduce((s, ch) => s + ch.nlc * ch.qty, 0) + (combo.packaging?.cost || 0) : 0;
+      return `
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div><div style="font-weight:600">${br.id} — ${br.comboName}</div><div style="font-size:12px;color:#999">${br.packedQty} combos packed · ${br.warehouse}</div></div>
+          ${statusBadge(br.status)}
+        </div>
+        <div class="card-body">
+          <div class="grid-2" style="gap:20px">
+            <div>
+              <div class="section-heading">Putaway Details</div>
+              <div class="info-row"><div class="info-label">Combo SKU</div><div class="info-value">${br.comboId}</div></div>
+              <div class="info-row"><div class="info-label">Packed Quantity</div><div class="info-value" style="font-weight:700;font-size:18px">${br.packedQty}</div></div>
+              <div class="info-row"><div class="info-label">Destination Bin</div><div class="info-value">COMBO-BIN-01</div></div>
+              <div class="info-row"><div class="info-label">Parent Lot ID</div><div class="info-value">LOT-${br.comboId}-${br.createdAt?.replace(/-/g,'')}</div></div>
+              <div class="info-row"><div class="info-label">Parent Lot Expiry</div><div class="info-value">2025-11-15 (min child expiry)</div></div>
+            </div>
+            <div>
+              <div class="section-heading">NLC Computation Preview</div>
+              <div class="nlc-formula">NLC = Σ(child_lot_NLC × qty) + pkg_cost</div>
+              ${combo?.children.map(ch => `<div style="font-size:12px;color:#666;margin-top:6px">${ch.name}: ₹${ch.nlc} × ${ch.qty * br.packedQty} = ₹${ch.nlc * ch.qty * br.packedQty}</div>`).join('')}
+              <div style="font-size:12px;color:#666;margin-top:4px">Packaging: ₹${combo?.packaging?.cost || 0} × ${br.packedQty} = ₹${(combo?.packaging?.cost || 0) * br.packedQty}</div>
+              <div style="font-size:14px;font-weight:700;color:var(--purple);margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">Final NLC per combo: ₹${nlc.toFixed(2)}</div>
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:16px">
+            <label class="form-label">Scan destination bin to confirm</label>
+            <div style="display:flex;gap:8px">
+              <input class="form-control" id="putaway-bin-${br.id}" placeholder="Scan COMBO-BIN-01..." style="flex:1">
+              <button class="btn btn-primary" onclick="confirmPutaway('${br.id}', ${nlc})">Confirm Putaway</button>
+            </div>
+          </div>
+        </div>
+      </div>`}).join('')}`;
+}
+
+function confirmPutaway(brId, nlc) {
+  const br = store.buildRequests.find(x => x.id === brId);
+  br.status = 'COMPLETED';
+  br.finalNlc = nlc;
+  br.completedAt = new Date().toISOString().split('T')[0];
+  // Create conversion record
+  const combo = store.combos.find(c => c.id === br.comboId);
+  combo.inventory += br.packedQty;
+  const crId = 'CR-' + brId;
+  store.conversionRecords.push({
+    id: crId, brId, comboId: br.comboId, comboName: br.comboName,
+    parentLotId: `LOT-${br.comboId}-${br.completedAt?.replace(/-/g,'')}`,
+    finalQty: br.packedQty, requestedQty: br.requestedQty, approvedQty: br.approvedQty,
+    pickedQty: br.pickedQty, packedQty: br.packedQty, finalNlc: nlc, gst: combo?.gst,
+    warehouse: br.warehouse, raisedBy: br.raisedBy, tlApprovedBy: br.tlApprovedBy,
+    putawayBy: 'Current User', timestamp: new Date().toLocaleString(), stockTakeTaskId: 'ST-NEW-001',
+    children: combo?.children.map(ch => ({ skuId: ch.id, name: ch.name, lotId: 'LOT-'+ch.id+'-A', qty: ch.qty * br.packedQty, nlc: ch.nlc })) || [],
+    packaging: { skuId: combo?.packaging?.id, name: combo?.packaging?.name, qty: br.packedQty, cost: combo?.packaging?.cost || 0 }
+  });
+  showToast(`✅ Putaway complete. Conversion Record ${crId} created. ${br.packedQty} combos now promiseable.`);
+  showPage('conversion-records');
+}
+
+// ============================================================
+// PAGE: DE-BUNDLING
+// ============================================================
+function renderDebundle() {
+  const eligible = store.combos.filter(c => c.status === 'INACTIVE' && c.inventory > 0);
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">De-bundling</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">Physically reverse built combos back into component child SKUs</div>
+    </div>
+    <div class="alert alert-amber"><span>⚠️</span><span>De-bundling requires the combo SKU to be <strong>INACTIVE</strong>. Only non-promised units can be de-bundled.</span></div>
+    <div class="grid-2" style="gap:20px;align-items:start">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><h3>Eligible Combo SKUs</h3></div>
+          ${eligible.length === 0 ? `<div class="card-body"><div style="color:#bbb;font-size:13px">No INACTIVE combos with inventory. Set a combo to INACTIVE first.</div></div>` :
+          `<table><thead><tr><th>Combo</th><th>Status</th><th>Stock</th><th></th></tr></thead><tbody>
+          ${eligible.map(c => `<tr><td><div style="font-weight:500">${c.id}</div><div style="font-size:11px;color:#999">${c.name}</div></td><td>${statusBadge(c.status)}</td><td>${c.inventory}</td><td><button class="btn btn-amber btn-sm" onclick="openDebundleRequest('${c.id}')">De-bundle</button></td></tr>`).join('')}
+          </tbody></table>`}
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>De-bundle History</h3></div>
+          <table><thead><tr><th>ID</th><th>Combo</th><th>Qty</th><th>Status</th><th>Raised By</th></tr></thead>
+          <tbody>
+          ${store.debundleRequests.map(db => `<tr><td>${db.id}</td><td>${db.comboName}</td><td>${db.qty}</td><td>${statusBadge(db.status)}</td><td>${db.raisedBy}</td></tr>`).join('')}
+          </tbody></table>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header"><h3>De-bundle Flow</h3></div>
+          <div class="card-body">
+            <div class="timeline">
+              ${[['CREATED','Raised by Ops, Category, or Finance. References Conversion Record.','🟠'],['IN PROGRESS','Picker physically retrieves combo units from bin via picker app.','🔵'],['COMPLETED','Child SKUs put away to original bins. Reversal Record created.','🟢']].map((s,i,arr)=>`
+                <div class="timeline-step">
+                  <div class="timeline-left">
+                    <div class="timeline-dot" style="background:${['var(--amber-light)','var(--blue-light)','var(--green-light)'][i]};color:${['var(--amber)','var(--blue)','var(--green)'][i]};font-size:16px">${s[2]}</div>
+                    ${i < arr.length-1 ? '<div class="timeline-line"></div>' : ''}
+                  </div>
+                  <div class="timeline-content">
+                    <div class="step-title">${s[0]}</div>
+                    <div class="step-desc">${s[1]}</div>
+                  </div>
+                </div>`).join('')}
+            </div>
+            <div style="margin-top:16px;background:#f8f7ff;border:1px solid #d8d4f5;border-radius:8px;padding:12px">
+              <div style="font-size:12px;font-weight:600;color:var(--purple);margin-bottom:8px">Child NLC on Return (Weighted Average)</div>
+              <div class="nlc-formula" style="font-size:12px">New NLC = (conv_NLC × ret_qty + curr_NLC × exist_qty) / (ret_qty + exist_qty)</div>
+              <div style="font-size:12px;color:#888;margin-top:6px">No split cost layers. Single blended NLC after de-bundle.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function openDebundleRequest(comboId) {
+  const combo = store.combos.find(c => c.id === comboId);
+  const cr = store.conversionRecords.find(c => c.comboId === comboId);
+  openModal(`
+    <div class="modal modal-lg">
+      <div class="modal-header"><h2>De-bundle Request — ${combo.name}</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <div class="alert alert-amber"><span>⚠️</span><span>This is a physical warehouse operation. A picker will physically retrieve and unpack combos.</span></div>
+        <div class="form-group">
+          <label class="form-label">Reference Conversion Record</label>
+          <select class="form-control">
+            ${cr ? `<option value="${cr.id}">${cr.id} — ${cr.finalQty} units built on ${cr.timestamp}</option>` : `<option>No conversion records found</option>`}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quantity to De-bundle (max: ${combo.inventory})</label>
+          <input type="number" class="form-control" id="db-qty" value="${combo.inventory}" max="${combo.inventory}" min="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Packaging Handling</label>
+          <select class="form-control" id="db-pkg">
+            <option value="damaged">Mark packaging as damaged (write-off)</option>
+            <option value="restore">Restore packaging to stock</option>
+          </select>
+        </div>
+        ${cr ? `
+        <div class="section-heading" style="margin-top:4px">Child SKUs to be Returned</div>
+        <table><thead><tr><th>Child SKU</th><th>Return Lot</th><th>Qty per Combo</th><th>Total Return</th></tr></thead>
+        <tbody>
+          ${cr.children.map(ch => `<tr><td>${ch.name}</td><td><span class="tag">${ch.lotId}</span></td><td>${Math.round(ch.qty/cr.finalQty)}</td><td id="db-ch-${ch.skuId}">${ch.qty}</td></tr>`).join('')}
+        </tbody></table>` : ''}
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-amber" onclick="submitDebundle('${comboId}')">Create De-bundle Request</button>
+      </div>
+    </div>`);
+}
+
+function submitDebundle(comboId) {
+  const combo = store.combos.find(c => c.id === comboId);
+  const qty = parseInt(document.getElementById('db-qty')?.value) || 0;
+  const id = 'DB-2025-' + String(store.debundleRequests.length + 1).padStart(3,'0');
+  combo.inventory -= qty;
+  store.debundleRequests.push({ id, comboId, comboName: combo.name, crId: 'CR-001', qty, status: 'COMPLETED', raisedBy: 'Current User', warehouse: 'Delhi-DC1', completedAt: new Date().toISOString().split('T')[0] });
+  closeModal();
+  showPage('debundle');
+  showToast(`${id} de-bundle completed. Reversal Record created. Child SKUs returned to inventory.`);
+}
+
+// ============================================================
+// PAGE: CONVERSION RECORDS
+// ============================================================
+function renderConversionRecords() {
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Conversion Records</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">Immutable source of truth for every inventory transformation. Visible to all roles.</div>
+    </div>
+    <div class="card">
+      <table><thead><tr><th>Record ID</th><th>Combo</th><th>Final Qty</th><th>Parent Lot</th><th>Final NLC</th><th>GST</th><th>Timestamp</th><th></th></tr></thead>
+      <tbody>
+        ${store.conversionRecords.map(cr => `
+          <tr>
+            <td><div style="font-weight:500">${cr.id}</div><div style="font-size:11px;color:#999">${cr.brId}</div></td>
+            <td>${cr.comboName}<div style="font-size:11px;color:#999">${cr.comboId}</div></td>
+            <td><strong>${cr.finalQty}</strong></td>
+            <td><span class="tag">${cr.parentLotId}</span></td>
+            <td>₹${cr.finalNlc}</td>
+            <td>${cr.gst}%</td>
+            <td style="font-size:12px">${cr.timestamp}</td>
+            <td><button class="btn btn-secondary btn-sm" onclick="viewCR('${cr.id}')">View</button></td>
+          </tr>`).join('')}
+      </tbody></table>
+    </div>`;
+}
+
+function viewCR(id) {
+  const cr = store.conversionRecords.find(x => x.id === id);
+  if (!cr) return;
+  openModal(`
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h2>Conversion Record — ${cr.id}</h2>
+        <button class="modal-close" onclick="closeModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="conversion-record">
+          <div class="cr-title">🔒 Immutable Conversion Record</div>
+          <div class="grid-2" style="gap:20px">
+            <div>
+              <div class="section-heading">Quantities</div>
+              <div class="info-row"><div class="info-label">Requested</div><div class="info-value">${cr.requestedQty}</div></div>
+              <div class="info-row"><div class="info-label">TL Approved</div><div class="info-value">${cr.approvedQty}</div></div>
+              <div class="info-row"><div class="info-label">Picked</div><div class="info-value">${cr.pickedQty}</div></div>
+              <div class="info-row"><div class="info-label">Packed</div><div class="info-value">${cr.packedQty}</div></div>
+              <div class="info-row"><div class="info-label">Final (Put-away)</div><div class="info-value" style="font-weight:700;font-size:16px">${cr.finalQty}</div></div>
+            </div>
+            <div>
+              <div class="section-heading">Audit Trail</div>
+              <div class="info-row"><div class="info-label">Raised By</div><div class="info-value">${cr.raisedBy}</div></div>
+              <div class="info-row"><div class="info-label">TL Approved By</div><div class="info-value">${cr.tlApprovedBy}</div></div>
+              <div class="info-row"><div class="info-label">Putaway By</div><div class="info-value">${cr.putawayBy}</div></div>
+              <div class="info-row"><div class="info-label">Warehouse</div><div class="info-value">${cr.warehouse}</div></div>
+              <div class="info-row"><div class="info-label">Timestamp</div><div class="info-value">${cr.timestamp}</div></div>
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <div class="section-heading">Lot Lineage: ${cr.parentLotId}</div>
+            <table><thead><tr><th>Child SKU</th><th>Child Lot ID</th><th>Qty Consumed</th><th>NLC</th></tr></thead>
+            <tbody>
+              ${cr.children.map(ch => `<tr><td>${ch.name}<div style="font-size:11px;color:#999">${ch.skuId}</div></td><td><span class="tag">${ch.lotId}</span></td><td>${ch.qty}</td><td>₹${ch.nlc}</td></tr>`).join('')}
+              <tr style="background:var(--amber-light)"><td>${cr.packaging.name}<div style="font-size:11px;color:#999">${cr.packaging.skuId}</div></td><td>—</td><td>${cr.packaging.qty}</td><td>₹${cr.packaging.cost}</td></tr>
+            </tbody></table>
+          </div>
+          <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:8px;padding:12px 16px">
+            <div>
+              <div style="font-size:12px;color:#888">Final NLC per combo</div>
+              <div style="font-size:22px;font-weight:700;color:var(--purple)">₹${cr.finalNlc}</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#888">GST (frozen at activation)</div>
+              <div style="font-size:22px;font-weight:700">${cr.gst}%</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#888">Stock Take Task</div>
+              <span class="badge badge-blue">${cr.stockTakeTaskId}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      </div>
+    </div>`);
+}
+
+// ============================================================
+// PAGE: STOCK TAKE
+// ============================================================
+function renderStockTake() {
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Stock Take Integration</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">Auto-triggered warehouse-wide at pack confirmation for affected child SKUs</div>
+    </div>
+    <div class="alert alert-blue"><span>ℹ️</span><span>Stock take scope is <strong>warehouse-wide per child SKU</strong> — not bin-scoped. Other bin operations are unaffected.</span></div>
+    <div class="card">
+      <div class="card-header">
+        <h3>Stock Take Tasks</h3>
+        <span class="badge badge-amber">1 Open</span>
+      </div>
+      <table><thead><tr><th>Task ID</th><th>Triggered By</th><th>Child SKU</th><th>Warehouse</th><th>Status</th><th>System Qty</th><th>Counted Qty</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>ST-2025-001</td>
+          <td><div style="font-size:11px">BR-2025-001</div><div style="font-size:11px;color:#999">Pack Confirmation</div></td>
+          <td>Oats 500g (SKU-001)</td>
+          <td>Delhi-DC1</td>
+          <td>${statusBadge('COMPLETED')}</td>
+          <td>200</td>
+          <td>198</td>
+          <td><span class="badge badge-green">Closed</span></td>
+        </tr>
+        <tr>
+          <td>ST-2025-002</td>
+          <td><div style="font-size:11px">BR-2025-003</div><div style="font-size:11px;color:#999">Pack Confirmation</div></td>
+          <td>Trail Mix 200g (SKU-004)</td>
+          <td>Mumbai-DC2</td>
+          <td>${statusBadge('OPEN')}</td>
+          <td>300</td>
+          <td><input type="number" class="form-control" id="st-count" value="300" style="width:80px;padding:4px 8px"></td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-success btn-sm" onclick="closeStockTake()">Complete</button>
+              <button class="btn btn-danger btn-sm" onclick="flagDiscrepancy()">Flag</button>
+            </div>
+          </td>
+        </tr>
+      </tbody></table>
+    </div>`;
+}
+
+function closeStockTake() {
+  showToast('Stock take task ST-2025-002 completed and referenced in Conversion Record');
+  showPage('stock-take');
+}
+
+function flagDiscrepancy() {
+  const counted = document.getElementById('st-count')?.value;
+  showToast(`Discrepancy flagged: System 300 vs Counted ${counted}. Ops notified.`, 'warning');
+}
+
+// ============================================================
+// PAGE: REPORTS
+// ============================================================
+function renderReports() {
+  return `
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:600">Reports</div>
+      <div style="font-size:12px;color:#999;margin-top:2px">Planned vs approved vs actual combo builds and inventory traceability</div>
+    </div>
+    <div class="grid-2" style="gap:16px;margin-bottom:20px">
+      ${[['Total Combos Built','45','↑ vs last month','green'],['Yield Loss Units','2','0.4% variance rate','amber'],['Child SKU Consumption','180','across 3 SKUs','blue'],['De-bundled Units','6','1 reversal record','gray']].map(([l,v,s,c])=>`
+        <div class="stat-card"><div class="stat-label">${l}</div><div class="stat-value" style="color:var(--${c})">${v}</div><div class="stat-sub">${s}</div></div>`).join('')}
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>Build Quantity Funnel — BR-2025-001</h3></div>
+      <div class="card-body">
+        <div style="display:flex;gap:0;align-items:flex-end;height:120px;margin-bottom:10px">
+          ${[['Requested',50,'var(--gray-light)','var(--gray)'],['TL Approved',45,'var(--blue-light)','var(--blue)'],['Picked',46,'var(--purple-light)','var(--purple)'],['Packed',45,'var(--green-light)','var(--green)']].map(([l,v,bg,c])=>`
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <div style="font-size:14px;font-weight:700;color:${c}">${v}</div>
+              <div style="width:60%;height:${Math.round(v/50*90)}px;background:${bg};border:2px solid ${c};border-radius:6px 6px 0 0"></div>
+              <div style="font-size:11px;color:#888;text-align:center">${l}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="grid-2" style="gap:16px">
+      <div class="card">
+        <div class="card-header"><h3>Child SKU Consumption</h3></div>
+        <table><thead><tr><th>SKU</th><th>Consumed</th><th>Build</th></tr></thead>
+        <tbody>
+          <tr><td>Oats 500g</td><td>45</td><td>BR-2025-001</td></tr>
+          <tr><td>Honey 250g</td><td>45</td><td>BR-2025-001</td></tr>
+          <tr><td>Almonds 100g</td><td>45</td><td>BR-2025-001</td></tr>
+          <tr><td>Gift Box Medium</td><td>45</td><td>BR-2025-001 (pkg)</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Promise Logic</h3></div>
+        <div class="card-body">
+          <div class="nlc-formula" style="margin-bottom:12px">AVAILABLE_PHYSICAL = PHYSICAL_QTY − RESERVED_QTY<br>PROMISE_QTY = AVAILABLE_PHYSICAL</div>
+          ${store.combos.filter(c=>c.inventory > 0).map(c=>`
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+                <span>${c.name}</span>
+                <span class="badge badge-${c.status==='ACTIVE'?'green':'amber'}">${c.inventory} promiseable</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(100,c.inventory)}%;background:var(--${c.status==='ACTIVE'?'green':'amber'})"></div></div>
+            </div>`).join('')}
+          <div style="font-size:12px;color:#888;margin-top:8px">Only put-away combos are promiseable. Virtual / in-progress combos are never promiseable.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ============================================================
+// MODAL UTILS
+// ============================================================
+function openModal(html) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modal-overlay';
+  overlay.innerHTML = html;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.getElementById('modals').appendChild(overlay);
+}
+
+function closeModal() {
+  const m = document.getElementById('modal-overlay');
+  if (m) m.remove();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = 'success') {
+  const existing = document.getElementById('toast');
+  if (existing) existing.remove();
+  const t = document.createElement('div');
+  t.id = 'toast';
+  const colors = { success: ['var(--green-light)','var(--green)','#b8dca0'], error: ['var(--red-light)','var(--red)','#f0c0c0'], warning: ['var(--amber-light)','var(--amber)','#f0c888'] };
+  const [bg, color, border] = colors[type] || colors.success;
+  t.style.cssText = `position:fixed;bottom:24px;right:24px;background:${bg};color:${color};border:1px solid ${border};padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;max-width:400px;box-shadow:0 4px 20px rgba(0,0,0,.1);animation:slideIn .2s ease`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// Animation
+const style = document.createElement('style');
+style.textContent = `@keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }`;
+document.head.appendChild(style);
+
+// ============================================================
+// INIT
+// ============================================================
+showPage('combo-catalog');
+</script>
+</body>
+</html>
