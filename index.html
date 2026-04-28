@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contract Management + SOR Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">⬢</div>
+          <div>
+            <h1>Inventory System</h1>
+            <p>Operations workspace</p>
+          </div>
+        </div>
+
+        <div class="user-card">
+          <div class="avatar">PG</div>
+          <div>
+            <strong>paridhi.gupta</strong>
+            <span>User</span>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item">Dashboard</button>
+          <button class="nav-item">Vendor Management</button>
+          <button class="nav-item">Purchase Orders</button>
+          <button class="nav-item">SKU Mapping</button>
+          <button class="nav-item active" data-module="contracts">Contract Management</button>
+          <button class="nav-item" data-module="sorConfig">SOR Configuration</button>
+          <button class="nav-item">Vendor SKU Location Mapping</button>
+          <button class="nav-item">Inwarding</button>
+          <button class="nav-item">Inventory Conversion</button>
+          <button class="nav-item">Inventory Surplus</button>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow" id="moduleEyebrow">PRD v6 Prototype</p>
+            <h2 id="moduleTitle">Contract Management + SOR</h2>
+          </div>
+          <div class="topbar-actions" id="contractTopbarActions">
+            <button class="ghost-btn" id="openBulkModal">Bulk Upload CSV</button>
+            <button class="ghost-btn" id="openRenewModal">Renew Contract</button>
+            <button class="ghost-btn" id="duplicateQuickAction">Duplicate Contract</button>
+            <button class="secondary-btn" id="openAmendment">Simulate Price Revision</button>
+            <button class="primary-btn" id="openCreateModal">Create Contract</button>
+          </div>
+          <div class="topbar-actions hidden" id="sorTopbarActions">
+            <button class="ghost-btn" id="openSorBulkModal">Bulk Upload SKU Config</button>
+          </div>
+        </header>
+
+        <section class="hero-panel">
+          <div class="hero-copy">
+            <span class="hero-badge">Lane-first commercial contracts</span>
+            <h3>One contract per lane, one commercial model per contract, with margin-led pricing for both OR and SOR.</h3>
+            <p>
+              This interactive prototype covers the PRD’s core flows: lane validation,
+              commercial-type SKU filtering, VSM warnings, finance approvals, duplication,
+              audit trail, and renewal handling.
+            </p>
+            <div id="expiryHomepageMessage"></div>
+          </div>
+          <div class="hero-metrics" id="heroMetrics"></div>
+        </section>
+
+        <section class="workspace-grid" id="contractsWorkspace">
+          <div class="list-panel panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Contracts</p>
+                <h3>Contract Registry</h3>
+              </div>
+              <button class="ghost-btn small" id="resetFilters">Reset Filters</button>
+            </div>
+
+            <div class="filter-grid">
+              <label>
+                Search
+                <input id="searchInput" type="text" placeholder="Contract #, vendor, lane, SKU" />
+              </label>
+              <label>
+                Vendor
+                <select id="vendorFilter"></select>
+              </label>
+              <label>
+                Contract Type
+                <select id="typeFilter">
+                  <option value="ALL">All types</option>
+                  <option value="OR">OR</option>
+                  <option value="SOR">SOR</option>
+                </select>
+              </label>
+              <label>
+                Status
+                <select id="statusFilter"></select>
+              </label>
+              <label>
+                Hub
+                <select id="hubFilter"></select>
+              </label>
+              <label>
+                Expiry Window
+                <select id="expiryFilter">
+                  <option value="ALL">Any time</option>
+                  <option value="7">Next 7 days</option>
+                  <option value="30">Next 30 days</option>
+                  <option value="90">Next 90 days</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Contract #</th>
+                    <th>Vendor</th>
+                    <th>Lane</th>
+                    <th>Type</th>
+                    <th>SKUs</th>
+                    <th>Status</th>
+                    <th>Dates</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="contractTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="detail-stack">
+            <div class="detail-panel panel">
+              <div id="contractDetail"></div>
+            </div>
+
+            <div class="approvals-panel panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Finance</p>
+                  <h3>Contract Approvals</h3>
+                </div>
+                <span class="tag-pill" id="approvalQueueCount">0 pending</span>
+              </div>
+              <div id="approvalQueue"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="hidden sor-module-shell" id="sorConfigWorkspace">
+          <div class="sor-tab-strip">
+            <button class="chip sor-tab-btn active" data-sor-tab="dashboard">SOR Dashboard</button>
+            <button class="chip sor-tab-btn" data-sor-tab="configure">Configure SOR</button>
+          </div>
+
+          <div class="workspace-grid" id="sorDashboardView">
+            <div class="list-panel panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">SOR Configuration</p>
+                  <h3>SOR SKU Audit Dashboard</h3>
+                </div>
+              </div>
+
+              <div class="filter-grid">
+                <label>
+                  SKU ID / SKU Name
+                  <input id="sorSkuSearch" type="text" placeholder="Search by SKU ID or SKU Name" />
+                </label>
+                <label>
+                  Vendor ID / Vendor Name
+                  <input id="sorVendorSearch" type="text" placeholder="Search by Vendor ID or Vendor Name" />
+                </label>
+                <label>
+                  Commercial Type
+                  <select id="sorTypeFilter">
+                    <option value="SOR">SOR</option>
+                  </select>
+                </label>
+              </div>
+
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>SKU</th>
+                      <th>Vendor</th>
+                      <th>Commercial Type</th>
+                      <th>Made SOR On</th>
+                      <th>Made SOR By</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="sorConfigTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="detail-stack">
+              <div class="detail-panel panel">
+                <div id="sorConfigDetail"></div>
+              </div>
+
+              <div class="approvals-panel panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Bulk Rules</p>
+                    <h3>SOR Config Upload Guide</h3>
+                  </div>
+                </div>
+                <div class="review-stack">
+                  <div class="review-card">
+                    <strong>Accepted fields</strong>
+                    <div class="helper-text">`sku_id`, `commercial_type` where `commercial_type = SOR`</div>
+                  </div>
+                  <div class="review-card">
+                    <strong>Bulk behavior</strong>
+                    <div class="helper-text">The prototype applies SOR to all matching vendor SKU mappings for the uploaded SKU ID.</div>
+                  </div>
+                  <div class="review-card">
+                    <strong>Dashboard behavior</strong>
+                    <div class="helper-text">The audit dashboard is read-only and shows only SKU mappings already configured as SOR.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="workspace-grid hidden" id="sorConfigureView">
+            <div class="list-panel panel">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Configure SOR</p>
+                  <h3>Search SKU And Apply SOR</h3>
+                </div>
+              </div>
+
+              <div class="form-grid two">
+                <label>
+                  SKU ID / SKU Name
+                  <input id="configureSorSkuInput" list="sorSkuOptions" type="text" placeholder="Search SKU ID or SKU Name" />
+                  <datalist id="sorSkuOptions"></datalist>
+                </label>
+                <label>
+                  Commercial Type
+                  <select id="configureSorType" disabled>
+                    <option value="SOR">SOR</option>
+                  </select>
+                  <span class="helper-text">Fixed to SOR for this workflow.</span>
+                </label>
+              </div>
+
+              <div id="configureSorFeedback"></div>
+
+              <div class="detail-section">
+                <p class="eyebrow">Impact</p>
+                <h3>Vendor Mapping Preview</h3>
+                <div id="configureSorPreview"></div>
+              </div>
+
+              <div class="detail-section">
+                <button class="primary-btn" id="applySorConfiguration">Apply SOR Configuration</button>
+              </div>
+            </div>
+
+            <div class="detail-stack">
+              <div class="detail-panel panel">
+                <div class="detail-hero">
+                  <div class="detail-top">
+                    <div>
+                      <p class="eyebrow">Workflow</p>
+                      <h3>How Configure SOR Works</h3>
+                    </div>
+                    <span class="type-pill">SOR</span>
+                  </div>
+
+                  <div class="detail-section">
+                    <div class="summary-grid">
+                      <div class="summary-card">
+                        <span>Selection</span>
+                        <strong>SKU-first</strong>
+                        <div class="helper-text">Search using SKU ID or SKU Name from the dropdown.</div>
+                      </div>
+                      <div class="summary-card">
+                        <span>Commercial Type</span>
+                        <strong>SOR</strong>
+                        <div class="helper-text">Manual configuration in this module only applies SOR.</div>
+                      </div>
+                      <div class="summary-card">
+                        <span>Scope</span>
+                        <strong>All matching vendor rows</strong>
+                        <div class="helper-text">Any vendor mapping for the selected SKU is marked as SOR.</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="approvals-panel panel">
+                <div class="panel-header">
+                  <div>
+                    <p class="eyebrow">Reference</p>
+                    <h3>Prototype Notes</h3>
+                  </div>
+                </div>
+                <div class="review-stack">
+                  <div class="review-card">
+                    <strong>Bulk upload remains available</strong>
+                    <div class="helper-text">Use the top-right bulk upload action when multiple SKU IDs need to be configured at once.</div>
+                  </div>
+                  <div class="review-card">
+                    <strong>Audit stays centralized</strong>
+                    <div class="helper-text">Once configured, the affected SKU mappings move into the SOR Dashboard with timestamp and actor history.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal hidden" id="createModal">
+      <div class="modal-card wizard-card">
+        <div class="modal-header gradient">
+          <div>
+            <p class="eyebrow light">Workflow</p>
+            <h3>Create Contract</h3>
+          </div>
+          <button class="icon-btn" data-close="createModal">✕</button>
+        </div>
+
+        <div class="wizard-steps" id="wizardSteps"></div>
+
+        <div class="modal-body">
+          <div id="wizardAlerts"></div>
+          <div id="wizardContent"></div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="ghost-btn" id="wizardBack">Back</button>
+          <div class="footer-actions">
+            <button class="secondary-btn" id="saveDraftButton">Save Draft</button>
+            <button class="primary-btn" id="wizardNext">Next</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="duplicateModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Duplication</p>
+            <h3>Duplicate Contract To New Lane</h3>
+          </div>
+          <button class="icon-btn" data-close="duplicateModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="duplicateContractInfo" class="info-strip"></div>
+          <div class="form-grid two">
+            <label>
+              New Supply Location
+              <select id="duplicateSupply"></select>
+            </label>
+            <div>
+              <label>New Destination Hubs</label>
+              <div id="duplicateHubChoices" class="checkbox-grid"></div>
+            </div>
+          </div>
+          <div id="duplicateFeedback"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost-btn" data-close="duplicateModal">Cancel</button>
+          <button class="primary-btn" id="confirmDuplicate">Create Draft Copy</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="amendmentModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Rate Revision</p>
+            <h3>Simulate Base Price Change</h3>
+          </div>
+          <button class="icon-btn" data-close="amendmentModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="amendmentInfo" class="info-strip"></div>
+          <div class="form-grid two">
+            <label>
+              SKU
+              <select id="amendmentSku"></select>
+            </label>
+            <label>
+              New Base Price
+              <input id="amendmentPrice" type="number" min="0" step="0.01" placeholder="Enter revised price" />
+            </label>
+          </div>
+          <div id="amendmentFeedback"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost-btn" data-close="amendmentModal">Cancel</button>
+          <button class="primary-btn" id="submitAmendment">Apply Revision</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="bulkModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Bulk Onboarding</p>
+            <h3>Upload Contract CSV</h3>
+          </div>
+          <button class="icon-btn" data-close="bulkModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-strip">
+            <div>
+              <strong>Expected grouping logic</strong>
+              <div class="helper-text">
+                Rows are grouped by lane and commercial type. Destination hubs can be passed as multiple values separated by <code>|</code>.
+              </div>
+            </div>
+          </div>
+          <div class="template-toolbar">
+            <button class="secondary-btn" id="useBulkTemplate">Use CSV Template</button>
+            <button class="ghost-btn" id="downloadBulkTemplate">Download Template</button>
+          </div>
+          <div class="template-preview">
+            <strong>Template columns</strong>
+            <div class="helper-text">
+              `vendor_id`, `supply_location`, `destinations`, `sku_id`, `commercial_type`, `price_or_margin`,
+              `payment_type`, `credit_days`, `advance_amount`, `first_payment_days`, `settlement_cycle_days`,
+              `super_category`
+            </div>
+            <div class="helper-text">For contract bulk upload, `price_or_margin` now represents margin value for both `OR` and `SOR` rows.</div>
+          </div>
+          <label>
+            CSV Input
+            <textarea id="bulkCsvInput" rows="12"></textarea>
+          </label>
+          <div id="bulkFeedback"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost-btn" data-close="bulkModal">Cancel</button>
+          <button class="primary-btn" id="processBulkUpload">Create Draft Contracts</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="renewModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Renewal</p>
+            <h3>Renew Selected Contract</h3>
+          </div>
+          <button class="icon-btn" data-close="renewModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="renewInfo" class="info-strip"></div>
+          <div class="form-grid two">
+            <label>
+              New Start Date
+              <input id="renewStartDate" type="date" />
+            </label>
+            <label>
+              New End Date
+              <input id="renewEndDate" type="date" />
+            </label>
+          </div>
+          <div id="renewFeedback"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost-btn" data-close="renewModal">Cancel</button>
+          <button class="primary-btn" id="confirmRenewal">Create Renewal Draft</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="rejectApprovalModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">Finance Decision</p>
+            <h3>Reject Contract</h3>
+          </div>
+          <button class="icon-btn" data-close="rejectApprovalModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="rejectApprovalInfo" class="info-strip"></div>
+          <label>
+            Rejection Reason
+            <textarea id="rejectReasonInput" rows="6" placeholder="Explain why finance is rejecting this contract"></textarea>
+          </label>
+          <div id="rejectApprovalFeedback"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost-btn" data-close="rejectApprovalModal">Cancel</button>
+          <button class="primary-btn" id="submitRejectApproval">Reject Contract</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal hidden" id="sorBulkModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow">SOR Configuration</p>
+            <h3>Bulk Upload SKU Commercial Type</h3>
+          </div>
+          <button class="icon-btn" data-close="sorBulkModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="template-toolbar">
+            <button class="secondary-btn" id="useSorBulkTemplate">Use CSV Template</button>
+            <button class="ghost-btn" id="downloadSorBulkTemplate">Download Template</button>
+          </div>
+          <div class="template-preview">
+            <strong>Template columns</strong>
+            <div class="helper-text">`sku_id`, `commercial_type`</div>
+          </div>
+          <label>
+            CSV Input
+            <textarea id="sorBulkCsvInput" rows="10"></textarea>
+          </label>
+          <div id="sorBulkFeedback"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="ghost-btn" data-close="sorBulkModal">Cancel</button>
+          <button class="primary-btn" id="processSorBulkUpload">Apply SKU Config Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
